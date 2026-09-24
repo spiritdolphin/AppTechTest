@@ -1,0 +1,1446 @@
+{
+  "schemaVersion": 1,
+  "semesters": [
+    {
+      "termNum": 104,
+      "termCode": "2610",
+      "termName": "2026-27 Fall",
+      "academicYear": "2026-27",
+      "courseCount": 3928,
+      "departments": [
+        {
+          "code": "ACCT",
+          "name": "ACCT",
+          "courseCount": 56
+        },
+        {
+          "code": "AI",
+          "name": "AI (AIS)",
+          "courseCount": 61
+        },
+        {
+          "code": "AMAT",
+          "name": "AMAT (AIS)",
+          "courseCount": 57
+        },
+        {
+          "code": "AMC",
+          "name": "AMC",
+          "courseCount": 32
+        },
+        {
+          "code": "BIBU",
+          "name": "LIFS+SBM",
+          "courseCount": 5
+        },
+        {
+          "code": "BSBE",
+          "name": "BSBE (AIS)",
+          "courseCount": 14
+        },
+        {
+          "code": "CBME",
+          "name": "CBE",
+          "courseCount": 101
+        },
+        {
+          "code": "CEI",
+          "name": "CEI",
+          "courseCount": 1
+        },
+        {
+          "code": "CFT",
+          "name": "CFT",
+          "courseCount": 4
+        },
+        {
+          "code": "CHEM",
+          "name": "CHEM",
+          "courseCount": 94
+        },
+        {
+          "code": "CIVL",
+          "name": "CIVL",
+          "courseCount": 102
+        },
+        {
+          "code": "CMA",
+          "name": "CMA (AIS)",
+          "courseCount": 48
+        },
+        {
+          "code": "CNCC",
+          "name": "CNCC",
+          "courseCount": 35
+        },
+        {
+          "code": "CPEG",
+          "name": "CPEG",
+          "courseCount": 9
+        },
+        {
+          "code": "CSE",
+          "name": "CSE",
+          "courseCount": 141
+        },
+        {
+          "code": "DSA",
+          "name": "DSA (AIS)",
+          "courseCount": 55
+        },
+        {
+          "code": "ECE",
+          "name": "ECE",
+          "courseCount": 135
+        },
+        {
+          "code": "ECON",
+          "name": "ECON",
+          "courseCount": 99
+        },
+        {
+          "code": "EECCS",
+          "name": "EECCS",
+          "courseCount": 11
+        },
+        {
+          "code": "EMBA",
+          "name": "KH-EMBA",
+          "courseCount": 30
+        },
+        {
+          "code": "EMIA",
+          "name": "EMIA",
+          "courseCount": 12
+        },
+        {
+          "code": "ENTR",
+          "name": "ENTR",
+          "courseCount": 11
+        },
+        {
+          "code": "ENVR",
+          "name": "ENVR",
+          "courseCount": 83
+        },
+        {
+          "code": "EOAS",
+          "name": "EOAS (AIS)",
+          "courseCount": 15
+        },
+        {
+          "code": "FINA",
+          "name": "FINA",
+          "courseCount": 86
+        },
+        {
+          "code": "FINTECH",
+          "name": "FINTECH",
+          "courseCount": 14
+        },
+        {
+          "code": "FTEC",
+          "name": "FTEC (AIS)",
+          "courseCount": 51
+        },
+        {
+          "code": "FUNH",
+          "name": "FUNH (AIS)",
+          "courseCount": 5
+        },
+        {
+          "code": "HUMA",
+          "name": "HUMA",
+          "courseCount": 227
+        },
+        {
+          "code": "IELM",
+          "name": "IEDA",
+          "courseCount": 53
+        },
+        {
+          "code": "INFH",
+          "name": "INFH (AIS)",
+          "courseCount": 2
+        },
+        {
+          "code": "INTR",
+          "name": "INTR (AIS)",
+          "courseCount": 25
+        },
+        {
+          "code": "IOT",
+          "name": "IOT (AIS)",
+          "courseCount": 34
+        },
+        {
+          "code": "IPE",
+          "name": "IPE (AIS)",
+          "courseCount": 42
+        },
+        {
+          "code": "IPO",
+          "name": "AIS",
+          "courseCount": 30
+        },
+        {
+          "code": "IPO-DD",
+          "name": "TEMG",
+          "courseCount": 11
+        },
+        {
+          "code": "ISDN",
+          "name": "ISDN",
+          "courseCount": 68
+        },
+        {
+          "code": "ISOM",
+          "name": "ISOM",
+          "courseCount": 153
+        },
+        {
+          "code": "JS",
+          "name": "JS",
+          "courseCount": 4
+        },
+        {
+          "code": "LANG",
+          "name": "LANG",
+          "courseCount": 92
+        },
+        {
+          "code": "LEGAL",
+          "name": "LEGAL",
+          "courseCount": 1
+        },
+        {
+          "code": "LIFS",
+          "name": "LIFS",
+          "courseCount": 135
+        },
+        {
+          "code": "MARK",
+          "name": "MARK",
+          "courseCount": 50
+        },
+        {
+          "code": "MATH",
+          "name": "MATH",
+          "courseCount": 191
+        },
+        {
+          "code": "MBA+",
+          "name": "MBA+ (AIS)",
+          "courseCount": 16
+        },
+        {
+          "code": "MECH",
+          "name": "MAE",
+          "courseCount": 78
+        },
+        {
+          "code": "MGMT",
+          "name": "MGMT",
+          "courseCount": 80
+        },
+        {
+          "code": "MICS",
+          "name": "MICS (AIS)",
+          "courseCount": 35
+        },
+        {
+          "code": "OCES",
+          "name": "OCES",
+          "courseCount": 54
+        },
+        {
+          "code": "PGE",
+          "name": "PGE",
+          "courseCount": 30
+        },
+        {
+          "code": "PHYS",
+          "name": "PHYS",
+          "courseCount": 110
+        },
+        {
+          "code": "PLE",
+          "name": "PLE",
+          "courseCount": 19
+        },
+        {
+          "code": "PPOL",
+          "name": "PPOL",
+          "courseCount": 64
+        },
+        {
+          "code": "RMBI",
+          "name": "RMBI",
+          "courseCount": 12
+        },
+        {
+          "code": "ROAS",
+          "name": "ROAS (AIS)",
+          "courseCount": 44
+        },
+        {
+          "code": "SBM",
+          "name": "SBM",
+          "courseCount": 205
+        },
+        {
+          "code": "SEE",
+          "name": "SEE (AIS)",
+          "courseCount": 42
+        },
+        {
+          "code": "SENG",
+          "name": "SENG",
+          "courseCount": 266
+        },
+        {
+          "code": "SGFN",
+          "name": "SBM+ENVR",
+          "courseCount": 1
+        },
+        {
+          "code": "SHSS",
+          "name": "SHSS",
+          "courseCount": 76
+        },
+        {
+          "code": "SMMG",
+          "name": "SMMG (AIS)",
+          "courseCount": 63
+        },
+        {
+          "code": "SOCH",
+          "name": "SOCH (AIS)",
+          "courseCount": 2
+        },
+        {
+          "code": "SOSC",
+          "name": "SOSC",
+          "courseCount": 118
+        },
+        {
+          "code": "SSCI",
+          "name": "SSCI",
+          "courseCount": 48
+        },
+        {
+          "code": "STEM",
+          "name": "STEM",
+          "courseCount": 29
+        },
+        {
+          "code": "SYSH",
+          "name": "SYSH (AIS)",
+          "courseCount": 2
+        },
+        {
+          "code": "UGDO",
+          "name": "DSTO",
+          "courseCount": 3
+        },
+        {
+          "code": "UGOD",
+          "name": "UGOD (AIS)",
+          "courseCount": 36
+        },
+        {
+          "code": "UROP",
+          "name": "UROP",
+          "courseCount": 7
+        },
+        {
+          "code": "UST",
+          "name": "UST",
+          "courseCount": 1
+        },
+        {
+          "code": "UXUG",
+          "name": "UXUG",
+          "courseCount": 1
+        },
+        {
+          "code": "VPTLO",
+          "name": "VPTLO",
+          "courseCount": 1
+        }
+      ]
+    },
+    {
+      "termNum": 103,
+      "termCode": "2540",
+      "termName": "2025-26 Summer",
+      "academicYear": "2025-26",
+      "courseCount": 3817,
+      "departments": [
+        {
+          "code": "ACCT",
+          "name": "ACCT",
+          "courseCount": 57
+        },
+        {
+          "code": "AI",
+          "name": "AI (AIS)",
+          "courseCount": 62
+        },
+        {
+          "code": "AMAT",
+          "name": "AMAT (AIS)",
+          "courseCount": 58
+        },
+        {
+          "code": "AMC",
+          "name": "AMC",
+          "courseCount": 31
+        },
+        {
+          "code": "BIBU",
+          "name": "LIFS+SBM",
+          "courseCount": 5
+        },
+        {
+          "code": "BSBE",
+          "name": "BSBE (AIS)",
+          "courseCount": 12
+        },
+        {
+          "code": "CBME",
+          "name": "CBE",
+          "courseCount": 100
+        },
+        {
+          "code": "CEI",
+          "name": "CEI",
+          "courseCount": 1
+        },
+        {
+          "code": "CFT",
+          "name": "CFT",
+          "courseCount": 4
+        },
+        {
+          "code": "CHEM",
+          "name": "CHEM",
+          "courseCount": 97
+        },
+        {
+          "code": "CIVL",
+          "name": "CIVL",
+          "courseCount": 105
+        },
+        {
+          "code": "CMA",
+          "name": "CMA (AIS)",
+          "courseCount": 45
+        },
+        {
+          "code": "CNCC",
+          "name": "CNCC",
+          "courseCount": 29
+        },
+        {
+          "code": "CPEG",
+          "name": "CPEG",
+          "courseCount": 9
+        },
+        {
+          "code": "CSE",
+          "name": "CSE",
+          "courseCount": 137
+        },
+        {
+          "code": "DSA",
+          "name": "DSA (AIS)",
+          "courseCount": 54
+        },
+        {
+          "code": "ECE",
+          "name": "ECE",
+          "courseCount": 135
+        },
+        {
+          "code": "ECON",
+          "name": "ECON",
+          "courseCount": 97
+        },
+        {
+          "code": "EMBA",
+          "name": "KH-EMBA",
+          "courseCount": 32
+        },
+        {
+          "code": "EMIA",
+          "name": "EMIA",
+          "courseCount": 12
+        },
+        {
+          "code": "ENTR",
+          "name": "ENTR",
+          "courseCount": 11
+        },
+        {
+          "code": "ENVR",
+          "name": "ENVR",
+          "courseCount": 83
+        },
+        {
+          "code": "EOAS",
+          "name": "EOAS (AIS)",
+          "courseCount": 14
+        },
+        {
+          "code": "FINA",
+          "name": "FINA",
+          "courseCount": 81
+        },
+        {
+          "code": "FINTECH",
+          "name": "FINTECH",
+          "courseCount": 14
+        },
+        {
+          "code": "FTEC",
+          "name": "FTEC (AIS)",
+          "courseCount": 46
+        },
+        {
+          "code": "FUNH",
+          "name": "FUNH (AIS)",
+          "courseCount": 5
+        },
+        {
+          "code": "HUMA",
+          "name": "HUMA",
+          "courseCount": 230
+        },
+        {
+          "code": "IELM",
+          "name": "IEDA",
+          "courseCount": 55
+        },
+        {
+          "code": "INFH",
+          "name": "INFH (AIS)",
+          "courseCount": 2
+        },
+        {
+          "code": "INTR",
+          "name": "INTR (AIS)",
+          "courseCount": 26
+        },
+        {
+          "code": "IOT",
+          "name": "IOT (AIS)",
+          "courseCount": 32
+        },
+        {
+          "code": "IPE",
+          "name": "IPE (AIS)",
+          "courseCount": 36
+        },
+        {
+          "code": "IPO",
+          "name": "AIS",
+          "courseCount": 29
+        },
+        {
+          "code": "IPO-DD",
+          "name": "TEMG",
+          "courseCount": 11
+        },
+        {
+          "code": "ISDN",
+          "name": "ISDN",
+          "courseCount": 70
+        },
+        {
+          "code": "ISOM",
+          "name": "ISOM",
+          "courseCount": 149
+        },
+        {
+          "code": "JS",
+          "name": "JS",
+          "courseCount": 3
+        },
+        {
+          "code": "LANG",
+          "name": "LANG",
+          "courseCount": 90
+        },
+        {
+          "code": "LEGAL",
+          "name": "LEGAL",
+          "courseCount": 1
+        },
+        {
+          "code": "LIFS",
+          "name": "LIFS",
+          "courseCount": 120
+        },
+        {
+          "code": "MARK",
+          "name": "MARK",
+          "courseCount": 49
+        },
+        {
+          "code": "MATH",
+          "name": "MATH",
+          "courseCount": 179
+        },
+        {
+          "code": "MBA+",
+          "name": "MBA+ (AIS)",
+          "courseCount": 16
+        },
+        {
+          "code": "MECH",
+          "name": "MAE",
+          "courseCount": 78
+        },
+        {
+          "code": "MGMT",
+          "name": "MGMT",
+          "courseCount": 78
+        },
+        {
+          "code": "MICS",
+          "name": "MICS (AIS)",
+          "courseCount": 29
+        },
+        {
+          "code": "OCES",
+          "name": "OCES",
+          "courseCount": 54
+        },
+        {
+          "code": "PGE",
+          "name": "PGE",
+          "courseCount": 28
+        },
+        {
+          "code": "PHYS",
+          "name": "PHYS",
+          "courseCount": 109
+        },
+        {
+          "code": "PLE",
+          "name": "PLE",
+          "courseCount": 19
+        },
+        {
+          "code": "PPOL",
+          "name": "PPOL",
+          "courseCount": 63
+        },
+        {
+          "code": "RMBI",
+          "name": "RMBI",
+          "courseCount": 14
+        },
+        {
+          "code": "ROAS",
+          "name": "ROAS (AIS)",
+          "courseCount": 41
+        },
+        {
+          "code": "SBM",
+          "name": "SBM",
+          "courseCount": 206
+        },
+        {
+          "code": "SEE",
+          "name": "SEE (AIS)",
+          "courseCount": 29
+        },
+        {
+          "code": "SENG",
+          "name": "SENG",
+          "courseCount": 236
+        },
+        {
+          "code": "SGFN",
+          "name": "SBM+ENVR",
+          "courseCount": 1
+        },
+        {
+          "code": "SHSS",
+          "name": "SHSS",
+          "courseCount": 78
+        },
+        {
+          "code": "SMMG",
+          "name": "SMMG (AIS)",
+          "courseCount": 62
+        },
+        {
+          "code": "SOCH",
+          "name": "SOCH (AIS)",
+          "courseCount": 2
+        },
+        {
+          "code": "SOSC",
+          "name": "SOSC",
+          "courseCount": 121
+        },
+        {
+          "code": "SSCI",
+          "name": "SSCI",
+          "courseCount": 61
+        },
+        {
+          "code": "STEM",
+          "name": "STEM",
+          "courseCount": 27
+        },
+        {
+          "code": "SYSH",
+          "name": "SYSH (AIS)",
+          "courseCount": 2
+        },
+        {
+          "code": "UGDO",
+          "name": "DSTO",
+          "courseCount": 3
+        },
+        {
+          "code": "UGOD",
+          "name": "UGOD (AIS)",
+          "courseCount": 33
+        },
+        {
+          "code": "UROP",
+          "name": "UROP",
+          "courseCount": 7
+        },
+        {
+          "code": "UST",
+          "name": "UST",
+          "courseCount": 1
+        },
+        {
+          "code": "VPTLO",
+          "name": "VPTLO",
+          "courseCount": 1
+        }
+      ]
+    },
+    {
+      "termNum": 102,
+      "termCode": "2530",
+      "termName": "2025-26 Spring",
+      "academicYear": "2025-26",
+      "courseCount": 3794,
+      "departments": [
+        {
+          "code": "ACCT",
+          "name": "ACCT",
+          "courseCount": 56
+        },
+        {
+          "code": "AI",
+          "name": "AI (AIS)",
+          "courseCount": 57
+        },
+        {
+          "code": "AMAT",
+          "name": "AMAT (AIS)",
+          "courseCount": 57
+        },
+        {
+          "code": "AMC",
+          "name": "AMC",
+          "courseCount": 31
+        },
+        {
+          "code": "BIBU",
+          "name": "LIFS+SBM",
+          "courseCount": 5
+        },
+        {
+          "code": "BSBE",
+          "name": "BSBE (AIS)",
+          "courseCount": 12
+        },
+        {
+          "code": "CBME",
+          "name": "CBE",
+          "courseCount": 99
+        },
+        {
+          "code": "CEI",
+          "name": "CEI",
+          "courseCount": 1
+        },
+        {
+          "code": "CFT",
+          "name": "CFT",
+          "courseCount": 4
+        },
+        {
+          "code": "CHEM",
+          "name": "CHEM",
+          "courseCount": 97
+        },
+        {
+          "code": "CIVL",
+          "name": "CIVL",
+          "courseCount": 105
+        },
+        {
+          "code": "CMA",
+          "name": "CMA (AIS)",
+          "courseCount": 44
+        },
+        {
+          "code": "CNCC",
+          "name": "CNCC",
+          "courseCount": 29
+        },
+        {
+          "code": "CPEG",
+          "name": "CPEG",
+          "courseCount": 9
+        },
+        {
+          "code": "CSE",
+          "name": "CSE",
+          "courseCount": 137
+        },
+        {
+          "code": "DSA",
+          "name": "DSA (AIS)",
+          "courseCount": 55
+        },
+        {
+          "code": "ECE",
+          "name": "ECE",
+          "courseCount": 135
+        },
+        {
+          "code": "ECON",
+          "name": "ECON",
+          "courseCount": 97
+        },
+        {
+          "code": "EMBA",
+          "name": "KH-EMBA",
+          "courseCount": 32
+        },
+        {
+          "code": "EMIA",
+          "name": "EMIA",
+          "courseCount": 12
+        },
+        {
+          "code": "ENTR",
+          "name": "ENTR",
+          "courseCount": 11
+        },
+        {
+          "code": "ENVR",
+          "name": "ENVR",
+          "courseCount": 83
+        },
+        {
+          "code": "EOAS",
+          "name": "EOAS (AIS)",
+          "courseCount": 14
+        },
+        {
+          "code": "FINA",
+          "name": "FINA",
+          "courseCount": 81
+        },
+        {
+          "code": "FINTECH",
+          "name": "FINTECH",
+          "courseCount": 14
+        },
+        {
+          "code": "FTEC",
+          "name": "FTEC (AIS)",
+          "courseCount": 46
+        },
+        {
+          "code": "FUNH",
+          "name": "FUNH (AIS)",
+          "courseCount": 5
+        },
+        {
+          "code": "HUMA",
+          "name": "HUMA",
+          "courseCount": 229
+        },
+        {
+          "code": "IELM",
+          "name": "IEDA",
+          "courseCount": 55
+        },
+        {
+          "code": "INFH",
+          "name": "INFH (AIS)",
+          "courseCount": 2
+        },
+        {
+          "code": "INTR",
+          "name": "INTR (AIS)",
+          "courseCount": 25
+        },
+        {
+          "code": "IOT",
+          "name": "IOT (AIS)",
+          "courseCount": 32
+        },
+        {
+          "code": "IPE",
+          "name": "IPE (AIS)",
+          "courseCount": 36
+        },
+        {
+          "code": "IPO",
+          "name": "AIS",
+          "courseCount": 29
+        },
+        {
+          "code": "IPO-DD",
+          "name": "TEMG",
+          "courseCount": 11
+        },
+        {
+          "code": "ISDN",
+          "name": "ISDN",
+          "courseCount": 70
+        },
+        {
+          "code": "ISOM",
+          "name": "ISOM",
+          "courseCount": 149
+        },
+        {
+          "code": "JS",
+          "name": "JS",
+          "courseCount": 3
+        },
+        {
+          "code": "LANG",
+          "name": "LANG",
+          "courseCount": 89
+        },
+        {
+          "code": "LEGAL",
+          "name": "LEGAL",
+          "courseCount": 1
+        },
+        {
+          "code": "LIFS",
+          "name": "LIFS",
+          "courseCount": 120
+        },
+        {
+          "code": "MARK",
+          "name": "MARK",
+          "courseCount": 49
+        },
+        {
+          "code": "MATH",
+          "name": "MATH",
+          "courseCount": 179
+        },
+        {
+          "code": "MBA+",
+          "name": "MBA+ (AIS)",
+          "courseCount": 16
+        },
+        {
+          "code": "MECH",
+          "name": "MAE",
+          "courseCount": 78
+        },
+        {
+          "code": "MGMT",
+          "name": "MGMT",
+          "courseCount": 78
+        },
+        {
+          "code": "MICS",
+          "name": "MICS (AIS)",
+          "courseCount": 29
+        },
+        {
+          "code": "OCES",
+          "name": "OCES",
+          "courseCount": 54
+        },
+        {
+          "code": "PGE",
+          "name": "PGE",
+          "courseCount": 26
+        },
+        {
+          "code": "PHYS",
+          "name": "PHYS",
+          "courseCount": 109
+        },
+        {
+          "code": "PLE",
+          "name": "PLE",
+          "courseCount": 19
+        },
+        {
+          "code": "PPOL",
+          "name": "PPOL",
+          "courseCount": 62
+        },
+        {
+          "code": "RMBI",
+          "name": "RMBI",
+          "courseCount": 14
+        },
+        {
+          "code": "ROAS",
+          "name": "ROAS (AIS)",
+          "courseCount": 36
+        },
+        {
+          "code": "SBM",
+          "name": "SBM",
+          "courseCount": 204
+        },
+        {
+          "code": "SEE",
+          "name": "SEE (AIS)",
+          "courseCount": 28
+        },
+        {
+          "code": "SENG",
+          "name": "SENG",
+          "courseCount": 235
+        },
+        {
+          "code": "SGFN",
+          "name": "SBM+ENVR",
+          "courseCount": 1
+        },
+        {
+          "code": "SHSS",
+          "name": "SHSS",
+          "courseCount": 78
+        },
+        {
+          "code": "SMMG",
+          "name": "SMMG (AIS)",
+          "courseCount": 62
+        },
+        {
+          "code": "SOCH",
+          "name": "SOCH (AIS)",
+          "courseCount": 2
+        },
+        {
+          "code": "SOSC",
+          "name": "SOSC",
+          "courseCount": 121
+        },
+        {
+          "code": "SSCI",
+          "name": "SSCI",
+          "courseCount": 61
+        },
+        {
+          "code": "STEM",
+          "name": "STEM",
+          "courseCount": 27
+        },
+        {
+          "code": "SYSH",
+          "name": "SYSH (AIS)",
+          "courseCount": 2
+        },
+        {
+          "code": "UGDO",
+          "name": "DSTO",
+          "courseCount": 3
+        },
+        {
+          "code": "UGOD",
+          "name": "UGOD (AIS)",
+          "courseCount": 33
+        },
+        {
+          "code": "UROP",
+          "name": "UROP",
+          "courseCount": 7
+        },
+        {
+          "code": "UST",
+          "name": "UST",
+          "courseCount": 1
+        },
+        {
+          "code": "VPTLO",
+          "name": "VPTLO",
+          "courseCount": 1
+        }
+      ]
+    },
+    {
+      "termNum": 101,
+      "termCode": "2520",
+      "termName": "2025-26 Winter",
+      "academicYear": "2025-26",
+      "courseCount": 3639,
+      "departments": [
+        {
+          "code": "ACCT",
+          "name": "ACCT",
+          "courseCount": 51
+        },
+        {
+          "code": "AI",
+          "name": "AI (AIS)",
+          "courseCount": 50
+        },
+        {
+          "code": "AMAT",
+          "name": "AMAT (AIS)",
+          "courseCount": 55
+        },
+        {
+          "code": "AMC",
+          "name": "AMC",
+          "courseCount": 30
+        },
+        {
+          "code": "BIBU",
+          "name": "LIFS+SBM",
+          "courseCount": 5
+        },
+        {
+          "code": "BSBE",
+          "name": "BSBE (AIS)",
+          "courseCount": 11
+        },
+        {
+          "code": "CBME",
+          "name": "CBE",
+          "courseCount": 99
+        },
+        {
+          "code": "CEI",
+          "name": "CEI",
+          "courseCount": 1
+        },
+        {
+          "code": "CFT",
+          "name": "CFT",
+          "courseCount": 5
+        },
+        {
+          "code": "CHEM",
+          "name": "CHEM",
+          "courseCount": 97
+        },
+        {
+          "code": "CIVL",
+          "name": "CIVL",
+          "courseCount": 104
+        },
+        {
+          "code": "CMA",
+          "name": "CMA (AIS)",
+          "courseCount": 39
+        },
+        {
+          "code": "CNCC",
+          "name": "CNCC",
+          "courseCount": 26
+        },
+        {
+          "code": "CPEG",
+          "name": "CPEG",
+          "courseCount": 9
+        },
+        {
+          "code": "CSE",
+          "name": "CSE",
+          "courseCount": 136
+        },
+        {
+          "code": "DSA",
+          "name": "DSA (AIS)",
+          "courseCount": 40
+        },
+        {
+          "code": "ECE",
+          "name": "ECE",
+          "courseCount": 130
+        },
+        {
+          "code": "ECON",
+          "name": "ECON",
+          "courseCount": 97
+        },
+        {
+          "code": "EMBA",
+          "name": "KH-EMBA",
+          "courseCount": 32
+        },
+        {
+          "code": "EMIA",
+          "name": "EMIA",
+          "courseCount": 11
+        },
+        {
+          "code": "ENTR",
+          "name": "ENTR",
+          "courseCount": 11
+        },
+        {
+          "code": "ENVR",
+          "name": "ENVR",
+          "courseCount": 82
+        },
+        {
+          "code": "EOAS",
+          "name": "EOAS (AIS)",
+          "courseCount": 13
+        },
+        {
+          "code": "FINA",
+          "name": "FINA",
+          "courseCount": 78
+        },
+        {
+          "code": "FINTECH",
+          "name": "FINTECH",
+          "courseCount": 14
+        },
+        {
+          "code": "FTEC",
+          "name": "FTEC (AIS)",
+          "courseCount": 45
+        },
+        {
+          "code": "FUNH",
+          "name": "FUNH (AIS)",
+          "courseCount": 5
+        },
+        {
+          "code": "HUMA",
+          "name": "HUMA",
+          "courseCount": 210
+        },
+        {
+          "code": "IELM",
+          "name": "IEDA",
+          "courseCount": 56
+        },
+        {
+          "code": "INFH",
+          "name": "INFH (AIS)",
+          "courseCount": 2
+        },
+        {
+          "code": "INTR",
+          "name": "INTR (AIS)",
+          "courseCount": 24
+        },
+        {
+          "code": "IOT",
+          "name": "IOT (AIS)",
+          "courseCount": 31
+        },
+        {
+          "code": "IPE",
+          "name": "IPE (AIS)",
+          "courseCount": 36
+        },
+        {
+          "code": "IPO",
+          "name": "AIS",
+          "courseCount": 29
+        },
+        {
+          "code": "IPO-DD",
+          "name": "TEMG",
+          "courseCount": 11
+        },
+        {
+          "code": "ISDN",
+          "name": "ISDN",
+          "courseCount": 59
+        },
+        {
+          "code": "ISOM",
+          "name": "ISOM",
+          "courseCount": 145
+        },
+        {
+          "code": "JS",
+          "name": "JS",
+          "courseCount": 3
+        },
+        {
+          "code": "LANG",
+          "name": "LANG",
+          "courseCount": 75
+        },
+        {
+          "code": "LEGAL",
+          "name": "LEGAL",
+          "courseCount": 1
+        },
+        {
+          "code": "LIFS",
+          "name": "LIFS",
+          "courseCount": 119
+        },
+        {
+          "code": "MARK",
+          "name": "MARK",
+          "courseCount": 47
+        },
+        {
+          "code": "MATH",
+          "name": "MATH",
+          "courseCount": 179
+        },
+        {
+          "code": "MBA+",
+          "name": "MBA+ (AIS)",
+          "courseCount": 16
+        },
+        {
+          "code": "MECH",
+          "name": "MAE",
+          "courseCount": 78
+        },
+        {
+          "code": "MGMT",
+          "name": "MGMT",
+          "courseCount": 73
+        },
+        {
+          "code": "MICS",
+          "name": "MICS (AIS)",
+          "courseCount": 24
+        },
+        {
+          "code": "OCES",
+          "name": "OCES",
+          "courseCount": 53
+        },
+        {
+          "code": "PGE",
+          "name": "PGE",
+          "courseCount": 24
+        },
+        {
+          "code": "PHYS",
+          "name": "PHYS",
+          "courseCount": 109
+        },
+        {
+          "code": "PLE",
+          "name": "PLE",
+          "courseCount": 19
+        },
+        {
+          "code": "PPOL",
+          "name": "PPOL",
+          "courseCount": 55
+        },
+        {
+          "code": "RMBI",
+          "name": "RMBI",
+          "courseCount": 14
+        },
+        {
+          "code": "ROAS",
+          "name": "ROAS (AIS)",
+          "courseCount": 28
+        },
+        {
+          "code": "SBM",
+          "name": "SBM",
+          "courseCount": 201
+        },
+        {
+          "code": "SEE",
+          "name": "SEE (AIS)",
+          "courseCount": 25
+        },
+        {
+          "code": "SENG",
+          "name": "SENG",
+          "courseCount": 232
+        },
+        {
+          "code": "SGFN",
+          "name": "SBM+ENVR",
+          "courseCount": 1
+        },
+        {
+          "code": "SHSS",
+          "name": "SHSS",
+          "courseCount": 78
+        },
+        {
+          "code": "SMMG",
+          "name": "SMMG (AIS)",
+          "courseCount": 54
+        },
+        {
+          "code": "SOCH",
+          "name": "SOCH (AIS)",
+          "courseCount": 2
+        },
+        {
+          "code": "SOSC",
+          "name": "SOSC",
+          "courseCount": 119
+        },
+        {
+          "code": "SSCI",
+          "name": "SSCI",
+          "courseCount": 61
+        },
+        {
+          "code": "STEM",
+          "name": "STEM",
+          "courseCount": 27
+        },
+        {
+          "code": "SYSH",
+          "name": "SYSH (AIS)",
+          "courseCount": 2
+        },
+        {
+          "code": "UGDO",
+          "name": "DSTO",
+          "courseCount": 3
+        },
+        {
+          "code": "UGOD",
+          "name": "UGOD (AIS)",
+          "courseCount": 30
+        },
+        {
+          "code": "UROP",
+          "name": "UROP",
+          "courseCount": 7
+        },
+        {
+          "code": "UST",
+          "name": "UST",
+          "courseCount": 1
+        }
+      ]
+    }
+  ]
+}

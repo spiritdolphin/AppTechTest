@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "generatorVersion": 1,
+  "source": {
+    "path": "courses.json",
+    "bytes": 28878583,
+    "recordCount": 15178,
+    "sha256": "c0e342da1c1674c93ad4f466383d2ea99e7732ab2a830e1a7bc17dcb7772a4d1"
+  },
+  "latestTermCode": "2610",
+  "files": [
+    {
+      "path": "catalogues/2520.json",
+      "bytes": 774607,
+      "sha256": "516f7b6235195b01aea073ce4a7650ebd00243abb54968dba7b54db9ba50df1c"
+    },
+    {
+      "path": "catalogues/2530.json",
+      "bytes": 810589,
+      "sha256": "86ac9fea929a22b29d79aa5a93c25f83ede9280666ce2c2f48c109fa8bca6a51"
+    },
+    {
+      "path": "catalogues/2540.json",
+      "bytes": 815620,
+      "sha256": "69b161d495f9f15ff05495c7ff65e03b13a016e1a4e995fb05888e2b67f4edb1"
+    },
+    {
+      "path": "catalogues/2610.json",
+      "bytes": 840996,
+      "sha256": "aed866f2a22eb604805499a273229c3448ece35bbc22d9113ce3e89b1b9cdf0d"
+    },
+    {
+      "path": "details/2520.json",
+      "bytes": 5968175,
+      "sha256": "294770a7404da558d53fbf6ddb92dd009469927ab12c41400ef80360ee801c08"
+    },
+    {
+      "path": "details/2530.json",
+      "bytes": 6286405,
+      "sha256": "7e52619e3054af9178bd9af7ed58514e9702f44b9665afd51115afe0e7e243d8"
+    },
+    {
+      "path": "details/2540.json",
+      "bytes": 6328261,
+      "sha256": "dc7e563575b172a25ce1db9cd98efc34f92ebe8e0296e22494429ada8b06a68c"
+    },
+    {
+      "path": "details/2610.json",
+      "bytes": 6555322,
+      "sha256": "238b0ba6541298dc9366f5249dc1713c854807f62d98772a9edc03676c903feb"
+    },
+    {
+      "path": "prerequisites/2520.json",
+      "bytes": 145919,
+      "sha256": "e6eb83cff44376c0cd1cedcabb1985d7c10e3f41e8240637cefd1869ff42fb6e"
+    },
+    {
+      "path": "prerequisites/2530.json",
+      "bytes": 151903,
+      "sha256": "858d56eec38ab69508aa409832287eca080e5a0d4bcb986796356e0d2d807b0d"
+    },
+    {
+      "path": "prerequisites/2540.json",
+      "bytes": 153172,
+      "sha256": "24aa2db80700fc9401bb21d495bef181277c26e7d258f65ac92d11c00e3f3d2e"
+    },
+    {
+      "path": "prerequisites/2610.json",
+      "bytes": 156524,
+      "sha256": "99078736c7a507e34295f9447966485130b83417d26d160600944c932da836db"
+    },
+    {
+      "path": "semesters.json",
+      "bytes": 29571,
+      "sha256": "c00d548089db0302415ddf952e9acb7532bc6a44fe2785ee2ed2237cf363d1a7"
+    }
+  ]
+}
