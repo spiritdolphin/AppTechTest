@@ -2,6 +2,7 @@
   "name": "app-tech-test-2627",
   "version": "0.0.1",
   "private": true,
+  "packageManager": "yarn@1.22.22",
   "main": "index.tsx",
   "scripts": {
     "start": "expo start --dev-client",

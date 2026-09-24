@@ -2,6 +2,8 @@ node_modules
 ios
 android
 .expo
+dist
+generated
 .vscode
 ignite/ignite.json
 package.json
