@@ -43,6 +43,7 @@ yarn-error.log*
 # Tool caches
 .cache/
 .eslintcache
+.obsidian/
 
 # BUCK
 buck-out/
