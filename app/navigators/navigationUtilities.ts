@@ -67,8 +67,11 @@ export function useBackButtonHandler(canExit: (routeName: string) => boolean) {
         return false
       }
 
+      const rootState = navigationRef.getRootState()
+      if (!rootState) return false
+
       // grab the current route
-      const routeName = getActiveRouteName(navigationRef.getRootState())
+      const routeName = getActiveRouteName(rootState)
 
       // are we allowed to exit?
       if (canExitRef.current(routeName)) {

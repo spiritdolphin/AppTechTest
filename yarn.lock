@@ -2302,15 +2302,6 @@
     invariant "^2.2.4"
     nullthrows "^1.1.1"
 
-"@react-navigation/bottom-tabs@^7.2.0":
-  version "7.19.1"
-  resolved "https://registry.yarnpkg.com/@react-navigation/bottom-tabs/-/bottom-tabs-7.19.1.tgz#0dbeb0bb62ee6e2c416521048c23f0f0768ea16c"
-  integrity sha512-LE4CFDkwVQ1H+0CMTdanFJkXlgy4xaYoZMFrwS65iyMPDGfNBnGrqrNcn7nCiYWbodG2bYSbFmXlEyRE+Qh2xw==
-  dependencies:
-    "@react-navigation/elements" "^2.9.42"
-    color "^4.2.3"
-    sf-symbols-typescript "^2.1.0"
-
 "@react-navigation/core@^7.22.1":
   version "7.22.1"
   resolved "https://registry.yarnpkg.com/@react-navigation/core/-/core-7.22.1.tgz#fccef2d325620665067a1823e09d8079eb535d1a"
@@ -2926,13 +2917,6 @@ anymatch@^3.0.3:
     normalize-path "^3.0.0"
     picomatch "^2.0.4"
 
-apisauce@3.1.1:
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/apisauce/-/apisauce-3.1.1.tgz#1fa705b493696ca385eaefa2a2e7b06cbebf3faf"
-  integrity sha512-DQnF/5oNQaNLWrrs1zyI2E6ja8JrpwFH25ywevbu+nQdQKlWfeUSlT3Q2XTFwWcQkWVHfwQ1K+8R6ufM3xpPGA==
-  dependencies:
-    axios "^1.7.7"
-
 arg@^5.0.2:
   version "5.0.2"
   resolved "https://registry.yarnpkg.com/arg/-/arg-5.0.2.tgz#c81433cc427c92c4dcf4865142dbca6f15acd59c"
@@ -3062,16 +3046,6 @@ available-typed-arrays@^1.0.7:
   integrity sha512-wvUjBtSGN7+7SjNpq/9M2Tg350UZD3q62IFZLbRAR1bSMlCo1ZaeW+BJ+D090e4hIIZLBcTDWe4Mh4jvUDajzQ==
   dependencies:
     possible-typed-array-names "^1.0.0"
-
-axios@^1.7.7:
-  version "1.20.0"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-1.20.0.tgz#515513445aa60e71d04b6521ca6210829ccb4786"
-  integrity sha512-r8aOh8j9cGKpgQAqpzrUHnSIc6a59Y3Xf/cv8sy1DrHCkZHzQGEuoq1tARk6qSyDdtQGSDgpb9kFlruzPvrgwg==
-  dependencies:
-    follow-redirects "^1.16.0"
-    form-data "^4.0.6"
-    https-proxy-agent "^5.0.1"
-    proxy-from-env "^2.1.0"
 
 babel-jest@^29.2.1, babel-jest@^29.7.0:
   version "29.7.0"
@@ -3708,11 +3682,6 @@ data-view-byte-offset@^1.0.1:
     es-errors "^1.3.0"
     is-data-view "^1.0.1"
 
-date-fns@^4.1.0:
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/date-fns/-/date-fns-4.4.0.tgz#806539edf45c616b2b76b5f78b88c56ed3c7e036"
-  integrity sha512-+1UMbeh68lH1SegH83CGWwpb6OHHbpSgr3+s5Eww5M4CAgswBpoWS0AjTOfEJ33HiYKz1hdj/KTFprzXHmq/6w==
-
 debug@2.6.9, debug@^2.6.9:
   version "2.6.9"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.9.tgz#5d128515df134ff327e90a4c93f4e077a536341f"
@@ -3931,7 +3900,7 @@ error-ex@^1.3.1:
   dependencies:
     is-arrayish "^0.2.1"
 
-error-stack-parser@^2.0.4, error-stack-parser@^2.0.6:
+error-stack-parser@^2.0.6:
   version "2.1.4"
   resolved "https://registry.yarnpkg.com/error-stack-parser/-/error-stack-parser-2.1.4.tgz#229cb01cdbfa84440bfa91876285b94680188286"
   integrity sha512-Sk5V6wVazPhq5MhpO+AUxJn5x7XSXGl1R93Vn7i+zS15KDVxQijejNCrz8340/2bgLBjR9GtEG8ZVKONDjcqGQ==
@@ -4275,11 +4244,6 @@ eslint-plugin-react@^7.37.3:
     string.prototype.matchall "^4.0.12"
     string.prototype.repeat "^1.0.0"
 
-eslint-plugin-reactotron@^0.1.2:
-  version "0.1.9"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-reactotron/-/eslint-plugin-reactotron-0.1.9.tgz#1d7d62ea91b7017cec5a68ebe1203609412cf052"
-  integrity sha512-Gcy3TCiEYPNHObU26l+Z4PCpTQ+RC8Ifw/s31eQlh/1pg42G/xwV8kKrsRLIZ1UEXid3scGSQPO+LDBZ+JNWEQ==
-
 eslint-scope@^7.2.2:
   version "7.2.2"
   resolved "https://registry.yarnpkg.com/eslint-scope/-/eslint-scope-7.2.2.tgz#deb4f92563390f32006894af62a22dba1c46423f"
@@ -4483,11 +4447,6 @@ expect@^29.0.0, expect@^29.7.0:
     jest-message-util "^29.7.0"
     jest-util "^29.7.0"
 
-expo-application@~55.0.8:
-  version "55.0.19"
-  resolved "https://registry.yarnpkg.com/expo-application/-/expo-application-55.0.19.tgz#b3bf27fd7bd83c67710759291aa71fff45f66d3c"
-  integrity sha512-RFer4T46/OaIkNQEweA9PQj6xlXKor71IPNydWxlupx/XG05Yv/269HJJ3Q9zejdY9M7R3jTeTlAYYmXwbLBgA==
-
 expo-asset@~55.0.20:
   version "55.0.20"
   resolved "https://registry.yarnpkg.com/expo-asset/-/expo-asset-55.0.20.tgz#57b39bc5f49e22f8e76380eb70c71d35e8f6462b"
@@ -4565,21 +4524,6 @@ expo-keep-awake@~55.0.8:
   version "55.0.8"
   resolved "https://registry.yarnpkg.com/expo-keep-awake/-/expo-keep-awake-55.0.8.tgz#007e9ab9508c6e9dc606be6ceb7bbd2036c7ac58"
   integrity sha512-PfIpMfM+STOBwkR5XOE+yVtER86c44MD+W8QD8JxuO0sT9pF7Y1SJYakWlpvX8xsGA+bjKLxftm9403s9kQhKA==
-
-expo-linking@~55.0.7:
-  version "55.0.17"
-  resolved "https://registry.yarnpkg.com/expo-linking/-/expo-linking-55.0.17.tgz#96f450db240ece0aa10c8bbb2bf58e292c9e8d13"
-  integrity sha512-rc41rUbFYdJ4IdPxWQiTDtkOlEbtYQkvsCASzW1pqskfRShAd4tYyyAw1BTez3Cq1IgWkK3wcGR+HbFdzZ7ImQ==
-  dependencies:
-    expo-constants "~55.0.17"
-    invariant "^2.2.4"
-
-expo-localization@~55.0.8:
-  version "55.0.19"
-  resolved "https://registry.yarnpkg.com/expo-localization/-/expo-localization-55.0.19.tgz#257eeddc8b5f080a243065c78b5f5e2720dc1ed6"
-  integrity sha512-rw8pcC4QL8HC3K8Vs5pdVCB+ayFkaVD0f+Ul+jHgM6W7XdzGtCzd0x7rI3M/9PzP1YpAgQ4jYZid/g+UKi9IIA==
-  dependencies:
-    rtl-detect "^1.0.2"
 
 expo-manifests@~55.0.21:
   version "55.0.21"
@@ -4808,11 +4752,6 @@ flow-enums-runtime@^0.0.6:
   resolved "https://registry.yarnpkg.com/flow-enums-runtime/-/flow-enums-runtime-0.0.6.tgz#5bb0cd1b0a3e471330f4d109039b7eba5cb3e787"
   integrity sha512-3PYnM29RFXwvAN6Pc/scUfkI7RwhQ/xqyLUyPNlXUp9S40zI8nup9tUSrTLSVnWGBN38FNiGWbwZOB6uR4OGdw==
 
-follow-redirects@^1.16.0:
-  version "1.16.0"
-  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.16.0.tgz#28474a159d3b9d11ef62050a14ed60e4df6d61bc"
-  integrity sha512-y5rN/uOsadFT/JfYwhxRS5R7Qce+g3zG97+JrtFZlC9klX/W5hD7iiLzScI4nZqUS7DNUdhPgw4xI8W2LuXlUw==
-
 fontfaceobserver@^2.1.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/fontfaceobserver/-/fontfaceobserver-2.3.0.tgz#5fb392116e75d5024b7ec8e4f2ce92106d1488c8"
@@ -4825,7 +4764,7 @@ for-each@^0.3.3, for-each@^0.3.5:
   dependencies:
     is-callable "^1.2.7"
 
-form-data@^4.0.0, form-data@^4.0.6:
+form-data@^4.0.0:
   version "4.0.6"
   resolved "https://registry.yarnpkg.com/form-data/-/form-data-4.0.6.tgz#28e864e1b786dbebb68db1f452f9635278665827"
   integrity sha512-vKatAh4SlVfgbv+YtmhiRjhEMJsYpsG1Y2rMQtR+SVSbytsSD1YGzDIcrAJmdFec88u/+VoGmxnl+80gL1tRCQ==
@@ -6680,11 +6619,6 @@ minipass@^7.1.2, minipass@^7.1.3:
   resolved "https://registry.yarnpkg.com/minipass/-/minipass-7.1.3.tgz#79389b4eb1bb2d003a9bba87d492f2bd37bdc65b"
   integrity sha512-tEBHqDnIoM/1rXME1zgka9g6Q2lcoCkxHLuc7ODJ5BxbP5d4c2Z5cGgtXAku59200Cx7diuHTOYfSBD8n6mm8A==
 
-mitt@^3.0.1:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/mitt/-/mitt-3.0.1.tgz#ea36cf0cc30403601ae074c8f77b7092cdab36d1"
-  integrity sha512-vKivATfr97l2/QBCYAkXYDbrIWPM2IIKEl7YPhjCvKlG3kE2gm+uBo6nEXK3M5/Ffh/FLpKExzOQ3JJoJGFKBw==
-
 mkdirp@^1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-1.0.4.tgz#3eb5ed62622756d79a5f0e2a221dfebad75c2f7e"
@@ -7209,11 +7143,6 @@ prop-types@^15.8.1:
     object-assign "^4.1.1"
     react-is "^16.13.1"
 
-proxy-from-env@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/proxy-from-env/-/proxy-from-env-2.1.0.tgz#a7487568adad577cfaaa7e88c49cab3ab3081aba"
-  integrity sha512-cJ+oHTW1VAEa8cJslgmUZrc+sjRKgAKl3Zyse6+PV38hZe/V6Z14TbCuXcan9F9ghlz4QrFr2c92TNF82UkYHA==
-
 psl@^1.1.33:
   version "1.15.0"
   resolved "https://registry.yarnpkg.com/psl/-/psl-1.15.0.tgz#bdace31896f1d97cec6a79e8224898ce93d974c6"
@@ -7288,14 +7217,6 @@ react-is@^19.1.0, react-is@^19.2.0:
   version "19.3.0"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-19.3.0.tgz#716028d67e9993d23a2d353c6d08a3c1ef2bbeb4"
   integrity sha512-UpMYezM4v5/18F28aC66AEsjXIgE02kyEMH6yLdgLXu/UTfa1Ntwck/nNLrbqJsEXW7gPb0coNO9FQse9WTovA==
-
-react-native-drawer-layout@^4.0.1:
-  version "4.2.10"
-  resolved "https://registry.yarnpkg.com/react-native-drawer-layout/-/react-native-drawer-layout-4.2.10.tgz#80eb37b6cce4bca95a2b58ca7efc7003ea2a3cdb"
-  integrity sha512-O6TQdZ5LSm3dqnuR4rX9KPtE+9dVg7jsezEYz1l01rkQTe4fQvYZIoPu2sZFl5X2N70uhRdjnPULySVR3sBUwA==
-  dependencies:
-    color "^4.2.3"
-    use-latest-callback "^0.2.4"
 
 react-native-edge-to-edge@~1.6.1:
   version "1.6.2"
@@ -7443,52 +7364,6 @@ react@19.2.0:
   version "19.2.0"
   resolved "https://registry.yarnpkg.com/react/-/react-19.2.0.tgz#d33dd1721698f4376ae57a54098cb47fc75d93a5"
   integrity sha512-tmbWg6W31tQLeB5cdIBOicJDJRR2KzXsV7uSK9iNfLWQ5bIZfxuPEHp7M8wiHyHnn0DD1i7w3Zmin0FtkrwoCQ==
-
-reactotron-core-client@2.10.0, reactotron-core-client@^2.9.4:
-  version "2.10.0"
-  resolved "https://registry.yarnpkg.com/reactotron-core-client/-/reactotron-core-client-2.10.0.tgz#494e6e56bb018774a0a63c797d48b53ac6986256"
-  integrity sha512-mOzkc1Rb4sN98OLY/frkP0e1A60bTFjuXUgG8D4m+pwCcjVCWZupdSFV8c5+gqcZBnreoVR20/ko6D8X/7KPvg==
-  dependencies:
-    reactotron-core-contract "0.4.0"
-
-reactotron-core-client@2.9.8:
-  version "2.9.8"
-  resolved "https://registry.yarnpkg.com/reactotron-core-client/-/reactotron-core-client-2.9.8.tgz#763436e8465da3a631044276609c5ead68959174"
-  integrity sha512-WsE+DmJhFGfBaafUHpkhWuJITNGfSDVofjK32rN3RGUBcaEXoYDFiiO/z/0vnOdGpZqZ+OH95Pa9x6LVywOMcA==
-  dependencies:
-    reactotron-core-contract "0.3.1"
-
-reactotron-core-contract@0.3.1:
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/reactotron-core-contract/-/reactotron-core-contract-0.3.1.tgz#2aaa17b963624e011c267311ea7f62999b6d9f92"
-  integrity sha512-/grw56j/VRXsm+cL2IWNWGhg5x70UZwgFzUvo0vZ+8gE1eqaeXGKMz7pfmfva56E7lk7CCxDtCi2s4CPrfgxqw==
-
-reactotron-core-contract@0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/reactotron-core-contract/-/reactotron-core-contract-0.4.0.tgz#7227fe19be6b564c083318798bdf88af943ca995"
-  integrity sha512-o7m4mSzaUM/IGDc1dBfe0q6rgSi7mZCP7FCs3kHF7AJQwXBOKx/awjVaeNVqz+w6ADiw7X4dtDdQvEROAXdD3w==
-
-reactotron-react-js@^3.3.11:
-  version "3.3.17"
-  resolved "https://registry.yarnpkg.com/reactotron-react-js/-/reactotron-react-js-3.3.17.tgz#48084dac0e5f5a79786ac4da93b932cc5d906e6f"
-  integrity sha512-pNoewswTjRQarQZGvmJnPre0S9S5EUgQa59vGdhZ3XotUi0lEfStBk3CwLldcHM/xvd3up65CNpKp8/la/6cDg==
-  dependencies:
-    reactotron-core-client "2.9.8"
-    stacktrace-js "2.0.1"
-
-reactotron-react-native-mmkv@^0.2.6:
-  version "0.2.9"
-  resolved "https://registry.yarnpkg.com/reactotron-react-native-mmkv/-/reactotron-react-native-mmkv-0.2.9.tgz#1af528c2f0f74afd903afcb3137a5b00fbbbbae6"
-  integrity sha512-zOEDEao+gA27IrZYHAHFPYmmSGGvuEKy6wv37WUzA1NdbQDFqPpVNQkDgL9kG5xOXlnUnp39JhHLaAJ63dz9cQ==
-
-reactotron-react-native@^5.0.5:
-  version "5.3.1"
-  resolved "https://registry.yarnpkg.com/reactotron-react-native/-/reactotron-react-native-5.3.1.tgz#ca8f3f6cf475f7571c8402e025a21b070c7a427e"
-  integrity sha512-kIXJ5bgYiWo0YNHr6gjq0LtDCVCmEs0Fgvf7dL6mDDprRKywifM0wkJX7tMoLvbxn2B9Xcm2wK8EPkx2wsNmXg==
-  dependencies:
-    mitt "^3.0.1"
-    reactotron-core-client "2.10.0"
-    reactotron-core-contract "0.4.0"
 
 rechoir@0.8.0:
   version "0.8.0"
@@ -7660,11 +7535,6 @@ rimraf@^3.0.2:
   integrity sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==
   dependencies:
     glob "^7.1.3"
-
-rtl-detect@^1.0.2:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/rtl-detect/-/rtl-detect-1.1.2.tgz#ca7f0330af5c6bb626c15675c642ba85ad6273c6"
-  integrity sha512-PGMBq03+TTG/p/cRB7HCLKJ1MgDIi07+QU1faSjiYRfmY5UsAttV9Hs08jDAHVwcOwmVLcSJkpwyfXszVjWfIQ==
 
 run-parallel@^1.1.9:
   version "1.2.0"
@@ -7984,7 +7854,7 @@ stable-hash@^0.0.5:
   resolved "https://registry.yarnpkg.com/stable-hash/-/stable-hash-0.0.5.tgz#94e8837aaeac5b4d0f631d2972adef2924b40269"
   integrity sha512-+L3ccpzibovGXFK+Ap/f8LOS0ahMrHTf3xu7mMLSpEGU0EO9ucaysSylKo9eRDFNhWve/y275iPmIZ4z39a9iA==
 
-stack-generator@^2.0.4, stack-generator@^2.0.5:
+stack-generator@^2.0.5:
   version "2.0.10"
   resolved "https://registry.yarnpkg.com/stack-generator/-/stack-generator-2.0.10.tgz#8ae171e985ed62287d4f1ed55a1633b3fb53bb4d"
   integrity sha512-mwnua/hkqM6pF4k8SnmZ2zfETsRUpWXREfA/goT8SLCV4iOFa4bzOX2nDipWAZFPTjLvQB82f5yaodMVhK0yJQ==
@@ -8003,22 +7873,13 @@ stackframe@^1.3.4:
   resolved "https://registry.yarnpkg.com/stackframe/-/stackframe-1.3.4.tgz#b881a004c8c149a5e8efef37d51b16e412943310"
   integrity sha512-oeVtt7eWQS+Na6F//S4kJ2K2VbRlS9D43mAlMyVpVWovy9o+jfgH8O9agzANzaiLjclA0oYzUXEM4PurhSUChw==
 
-stacktrace-gps@^3.0.3, stacktrace-gps@^3.0.4:
+stacktrace-gps@^3.0.4:
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/stacktrace-gps/-/stacktrace-gps-3.1.2.tgz#0c40b24a9b119b20da4525c398795338966a2fb0"
   integrity sha512-GcUgbO4Jsqqg6RxfyTHFiPxdPqF+3LFmQhm7MgCuYQOYuWyqxo5pwRPz5d/u6/WYJdEnWfK4r+jGbyD8TSggXQ==
   dependencies:
     source-map "0.5.6"
     stackframe "^1.3.4"
-
-stacktrace-js@2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/stacktrace-js/-/stacktrace-js-2.0.1.tgz#ebdb0e9a16e6f171f96ca7878404e7f15c3d42ba"
-  integrity sha512-13oDNgBSeWtdGa4/2BycNyKqe+VktCoJ8VLx4pDoJkwGGJVtiHdfMOAj3aW9xTi8oR2v34z9IcvfCvT6XNdNAw==
-  dependencies:
-    error-stack-parser "^2.0.4"
-    stack-generator "^2.0.4"
-    stacktrace-gps "^3.0.3"
 
 stacktrace-js@^2.0.2:
   version "2.0.2"
