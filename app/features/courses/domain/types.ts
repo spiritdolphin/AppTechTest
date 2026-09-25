@@ -85,6 +85,18 @@ export interface DetailsFile {
   coursesByCode: Record<string, CourseDetail>
 }
 
+export interface PrerequisiteEntry {
+  originalText: string
+  referencedCourseCodes: string[]
+}
+
+export interface PrerequisitesFile {
+  schemaVersion: number
+  termCode: string
+  byCourseCode: Record<string, PrerequisiteEntry>
+  reverseByCourseCode: Record<string, string[]>
+}
+
 export interface CourseSearchOptions {
   query?: string
   departmentCode?: string

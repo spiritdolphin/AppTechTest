@@ -4,6 +4,7 @@ import type {
   CatalogueFile,
   CourseDetail,
   DetailsFile,
+  PrerequisitesFile,
   SemestersFile,
 } from "../app/features/courses/domain/types"
 
@@ -95,6 +96,18 @@ function details(termCode: string, courses: CourseDetail[] = []): DetailsFile {
   }
 }
 
+function prerequisites(
+  termCode: string,
+  byCourseCode: PrerequisitesFile["byCourseCode"] = {},
+): PrerequisitesFile {
+  return {
+    schemaVersion: 1,
+    termCode,
+    byCourseCode,
+    reverseByCourseCode: {},
+  }
+}
+
 const catalogueLoaders = {
   new: () => catalogue("new", ["COMP 1021"]),
   old: () => catalogue("old"),
@@ -105,12 +118,18 @@ const detailsLoaders = {
   old: () => details("old"),
 }
 
+const prerequisitesLoaders = {
+  new: () => prerequisites("new"),
+  old: () => prerequisites("old"),
+}
+
 describe("CourseRepository", () => {
   test("uses the newest generated semester", () => {
     const repository = new CourseRepository({
       semestersFile,
       catalogueLoaders,
       detailsLoaders,
+      prerequisitesLoaders,
     })
 
     expect(repository.getLatestSemester().termCode).toBe("new")
@@ -123,6 +142,7 @@ describe("CourseRepository", () => {
       semestersFile: { ...semestersFile, semesters: [semestersFile.semesters[0]] },
       catalogueLoaders: { new: loader },
       detailsLoaders: { new: detailsLoaders.new },
+      prerequisitesLoaders: { new: prerequisitesLoaders.new },
     })
 
     const first = await repository.loadCatalogue("new")
@@ -139,13 +159,25 @@ describe("CourseRepository", () => {
           semestersFile,
           catalogueLoaders: { new: () => catalogue("new") },
           detailsLoaders,
+          prerequisitesLoaders,
         }),
     ).toThrow("Missing catalogue loader for semester old")
+
+    expect(
+      () =>
+        new CourseRepository({
+          semestersFile,
+          catalogueLoaders,
+          detailsLoaders,
+          prerequisitesLoaders: { new: prerequisitesLoaders.new },
+        }),
+    ).toThrow("Missing prerequisites loader for semester old")
 
     const repository = new CourseRepository({
       semestersFile: { ...semestersFile, semesters: [semestersFile.semesters[0]] },
       catalogueLoaders: { new: () => catalogue("wrong") },
       detailsLoaders: { new: detailsLoaders.new },
+      prerequisitesLoaders: { new: prerequisitesLoaders.new },
     })
     await expect(repository.loadCatalogue("new")).rejects.toThrow(
       "Catalogue term mismatch: expected new, got wrong",
@@ -159,6 +191,7 @@ describe("CourseRepository", () => {
       semestersFile: { ...semestersFile, semesters: [semestersFile.semesters[0]] },
       catalogueLoaders: { new: catalogueLoaders.new },
       detailsLoaders: { new: loader },
+      prerequisitesLoaders: { new: prerequisitesLoaders.new },
     })
 
     const first = await repository.loadDetails("new")
@@ -181,6 +214,7 @@ describe("CourseRepository", () => {
       semestersFile: { ...semestersFile, semesters: [semestersFile.semesters[0]] },
       catalogueLoaders: { new: catalogueLoaders.new },
       detailsLoaders: { new: badSchema },
+      prerequisitesLoaders: { new: prerequisitesLoaders.new },
     })
 
     await expect(repository.loadDetails("new")).rejects.toThrow(
@@ -193,6 +227,7 @@ describe("CourseRepository", () => {
       semestersFile: { ...semestersFile, semesters: [semestersFile.semesters[0]] },
       catalogueLoaders: { new: catalogueLoaders.new },
       detailsLoaders: { new: () => details("wrong") },
+      prerequisitesLoaders: { new: prerequisitesLoaders.new },
     })
     await expect(mismatched.loadDetails("new")).rejects.toThrow(
       "Details term mismatch: expected new, got wrong",
@@ -205,11 +240,52 @@ describe("CourseRepository", () => {
       semestersFile,
       catalogueLoaders,
       detailsLoaders,
+      prerequisitesLoaders,
     })
 
     await expect(repository.getAvailableSemestersForCourse("COMP 1021")).resolves.toEqual([
       semestersFile.semesters[0],
     ])
+  })
+
+  test("loads, validates, and caches prerequisite indexes", async () => {
+    const validFile = prerequisites("new", {
+      "COMP 1021": {
+        originalText: "MATH 1012",
+        referencedCourseCodes: ["MATH 1012"],
+      },
+    })
+    const loader = jest
+      .fn<PrerequisitesFile, []>()
+      .mockReturnValueOnce({ ...validFile, schemaVersion: 2 })
+      .mockReturnValue(validFile)
+    const repository = new CourseRepository({
+      semestersFile: { ...semestersFile, semesters: [semestersFile.semesters[0]] },
+      catalogueLoaders: { new: catalogueLoaders.new },
+      detailsLoaders: { new: detailsLoaders.new },
+      prerequisitesLoaders: { new: loader },
+    })
+
+    await expect(repository.loadPrerequisites("new")).rejects.toThrow(
+      "Unsupported prerequisites schema version: 2",
+    )
+    const loaded = await repository.loadPrerequisites("new")
+    expect(await repository.loadPrerequisites("new")).toBe(loaded)
+    expect(loader).toHaveBeenCalledTimes(2)
+    await expect(repository.getPrerequisiteEntry("new", "COMP 1021")).resolves.toEqual({
+      originalText: "MATH 1012",
+      referencedCourseCodes: ["MATH 1012"],
+    })
+
+    const mismatched = new CourseRepository({
+      semestersFile: { ...semestersFile, semesters: [semestersFile.semesters[0]] },
+      catalogueLoaders: { new: catalogueLoaders.new },
+      detailsLoaders: { new: detailsLoaders.new },
+      prerequisitesLoaders: { new: () => prerequisites("wrong") },
+    })
+    await expect(mismatched.loadPrerequisites("new")).rejects.toThrow(
+      "Prerequisites term mismatch: expected new, got wrong",
+    )
   })
 
   test("loads the committed latest-semester catalogue", async () => {
@@ -221,6 +297,25 @@ describe("CourseRepository", () => {
     await expect(courseRepository.getCourseDetail("2610", "COMP 1021")).resolves.toMatchObject({
       code: "COMP 1021",
       termCode: "2610",
+    })
+    await expect(courseRepository.getPrerequisiteEntry("2610", "COMP 2011")).resolves.toEqual({
+      originalText: "COMP 1023 OR COMP 1028",
+      referencedCourseCodes: ["COMP 1023", "COMP 1028"],
+    })
+    await expect(
+      courseRepository.resolveDependencyGraph("2610", "COMP 2011"),
+    ).resolves.toMatchObject({
+      courseCode: "COMP 2011",
+      currentCourseAvailable: true,
+      mode: "structured",
+      prerequisites: {
+        kind: "group",
+        operator: "or",
+        children: [
+          expect.objectContaining({ courseCode: "COMP 1023", available: true }),
+          expect.objectContaining({ courseCode: "COMP 1028", available: true }),
+        ],
+      },
     })
   })
 })

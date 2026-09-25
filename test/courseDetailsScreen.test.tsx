@@ -6,6 +6,7 @@ import type {
   CatalogueFile,
   CourseDetail,
   DetailsFile,
+  PrerequisitesFile,
   SemestersFile,
 } from "../app/features/courses/domain/types"
 import { CourseDetailsScreen } from "../app/features/courses/screens/CourseDetailsScreen"
@@ -123,6 +124,15 @@ function details(termCode: string, courses: CourseDetail[] = []): DetailsFile {
   }
 }
 
+function prerequisites(termCode: string): PrerequisitesFile {
+  return {
+    schemaVersion: 1,
+    termCode,
+    byCourseCode: {},
+    reverseByCourseCode: {},
+  }
+}
+
 function createRepository(
   overrides: Partial<
     Record<"new" | "old" | "missing", () => DetailsFile | Promise<DetailsFile>>
@@ -139,6 +149,11 @@ function createRepository(
       new: overrides.new ?? (() => details("new", [courseDetail("new")])),
       old: overrides.old ?? (() => details("old", [courseDetail("old")])),
       missing: overrides.missing ?? (() => details("missing")),
+    },
+    prerequisitesLoaders: {
+      new: () => prerequisites("new"),
+      old: () => prerequisites("old"),
+      missing: () => prerequisites("missing"),
     },
   })
 }
