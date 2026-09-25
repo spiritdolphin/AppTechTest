@@ -124,6 +124,27 @@ const prerequisitesLoaders = {
 }
 
 describe("CourseRepository", () => {
+  test("rejects unsupported or empty semester metadata", () => {
+    expect(
+      () =>
+        new CourseRepository({
+          semestersFile: { ...semestersFile, schemaVersion: 2 },
+          catalogueLoaders,
+          detailsLoaders,
+          prerequisitesLoaders,
+        }),
+    ).toThrow("Unsupported semester schema version: 2")
+    expect(
+      () =>
+        new CourseRepository({
+          semestersFile: { ...semestersFile, semesters: [] },
+          catalogueLoaders: {},
+          detailsLoaders: {},
+          prerequisitesLoaders: {},
+        }),
+    ).toThrow("No course semesters are available")
+  })
+
   test("uses the newest generated semester", () => {
     const repository = new CourseRepository({
       semestersFile,
@@ -134,6 +155,10 @@ describe("CourseRepository", () => {
 
     expect(repository.getLatestSemester().termCode).toBe("new")
     expect(repository.getSemesters()).toHaveLength(2)
+    expect(repository.getSemester("new")).toBe(semestersFile.semesters[0])
+    expect(repository.getSemester("missing")).toBeUndefined()
+    expect(repository.getDepartments("new")).toEqual([])
+    expect(repository.getDepartments("missing")).toEqual([])
   })
 
   test("loads each catalogue lazily and caches it", async () => {
@@ -168,6 +193,16 @@ describe("CourseRepository", () => {
         new CourseRepository({
           semestersFile,
           catalogueLoaders,
+          detailsLoaders: { new: detailsLoaders.new },
+          prerequisitesLoaders,
+        }),
+    ).toThrow("Missing details loader for semester old")
+
+    expect(
+      () =>
+        new CourseRepository({
+          semestersFile,
+          catalogueLoaders,
           detailsLoaders,
           prerequisitesLoaders: { new: prerequisitesLoaders.new },
         }),
@@ -183,6 +218,25 @@ describe("CourseRepository", () => {
       "Catalogue term mismatch: expected new, got wrong",
     )
     await expect(repository.loadCatalogue("missing")).rejects.toThrow("Unknown semester: missing")
+  })
+
+  test("validates catalogue schema and retries a failed loader", async () => {
+    const loader = jest
+      .fn<CatalogueFile, []>()
+      .mockReturnValueOnce({ ...catalogue("new"), schemaVersion: 2 })
+      .mockReturnValue(catalogue("new"))
+    const repository = new CourseRepository({
+      semestersFile: { ...semestersFile, semesters: [semestersFile.semesters[0]] },
+      catalogueLoaders: { new: loader },
+      detailsLoaders: { new: detailsLoaders.new },
+      prerequisitesLoaders: { new: prerequisitesLoaders.new },
+    })
+
+    await expect(repository.loadCatalogue("new")).rejects.toThrow(
+      "Unsupported catalogue schema version: 2",
+    )
+    await expect(repository.loadCatalogue("new")).resolves.toMatchObject({ termCode: "new" })
+    expect(loader).toHaveBeenCalledTimes(2)
   })
 
   test("loads details lazily, caches them, and looks up courses", async () => {
@@ -285,6 +339,9 @@ describe("CourseRepository", () => {
     })
     await expect(mismatched.loadPrerequisites("new")).rejects.toThrow(
       "Prerequisites term mismatch: expected new, got wrong",
+    )
+    await expect(mismatched.loadPrerequisites("missing")).rejects.toThrow(
+      "Unknown semester: missing",
     )
   })
 

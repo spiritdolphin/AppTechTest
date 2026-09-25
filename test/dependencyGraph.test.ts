@@ -100,6 +100,52 @@ describe("resolveDependencyGraph", () => {
     })
   })
 
+  test("keeps an extracted fallback when it appears in a nested course", async () => {
+    const graph = await resolveDependencyGraph({
+      catalogue: catalogue(["COMP 4000", "COMP 3000"]),
+      courseCode: "COMP 4000",
+      prerequisites: prerequisiteFile({
+        "COMP 4000": {
+          originalText: "COMP 3000",
+          referencedCourseCodes: ["COMP 3000"],
+        },
+        "COMP 3000": {
+          originalText: "Any MATH course at or above 1000-level or CORE 1120",
+          referencedCourseCodes: ["CORE 1120"],
+        },
+      }),
+    })
+
+    expect(graph.prerequisites).toMatchObject({
+      kind: "course",
+      courseCode: "COMP 3000",
+      prerequisites: {
+        kind: "group",
+        operator: "extracted",
+        children: [expect.objectContaining({ courseCode: "CORE 1120", available: false })],
+      },
+    })
+  })
+
+  test("keeps an empty extracted group when natural language contains no course code", async () => {
+    const graph = await resolveDependencyGraph({
+      catalogue: catalogue(["COMP 4000"]),
+      courseCode: "COMP 4000",
+      prerequisites: prerequisiteFile({
+        "COMP 4000": {
+          originalText: "Level 3 or above in HKDSE Mathematics",
+          referencedCourseCodes: [],
+        },
+      }),
+    })
+
+    expect(graph).toMatchObject({
+      mode: "extracted",
+      originalText: "Level 3 or above in HKDSE Mathematics",
+      prerequisites: { kind: "group", operator: "extracted", children: [] },
+    })
+  })
+
   test("handles a course with no prerequisites", async () => {
     const graph = await resolveDependencyGraph({
       catalogue: catalogue(["COMP 1000"]),

@@ -1,6 +1,14 @@
 import { parsePrerequisite } from "../app/features/courses/domain/prerequisiteParser"
 
 describe("parsePrerequisite", () => {
+  test("treats an empty prerequisite as a complete expression with no courses", () => {
+    expect(parsePrerequisite("  ")).toEqual({
+      complete: true,
+      extractedCourseCodes: [],
+      originalText: "  ",
+    })
+  })
+
   test.each([
     ["COMP 1023", "COMP 1023"],
     ["COMP1023", "COMP 1023"],
@@ -100,5 +108,18 @@ describe("parsePrerequisite", () => {
 
     expect(parsed.complete).toBe(false)
     expect(parsed.extractedCourseCodes).toEqual(["COMP 1023", "CORE 1120"])
+  })
+
+  test.each([
+    ["COMP 1023 AND", ["COMP 1023"]],
+    ["(COMP 1023 OR MATH 1012", ["COMP 1023", "MATH 1012"]],
+    ["AND COMP 1023", ["COMP 1023"]],
+  ])("falls back safely for an incomplete expression: %s", (text, extractedCourseCodes) => {
+    expect(parsePrerequisite(text)).toMatchObject({
+      complete: false,
+      expression: undefined,
+      extractedCourseCodes,
+      originalText: text,
+    })
   })
 })
