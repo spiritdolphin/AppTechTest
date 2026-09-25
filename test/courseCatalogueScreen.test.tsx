@@ -11,10 +11,11 @@ const initialMetrics = {
 
 describe("CourseCatalogueScreen", () => {
   test("loads the latest catalogue and updates results while typing", async () => {
+    const navigation = { navigate: jest.fn() }
     const screen = render(
       <SafeAreaProvider initialMetrics={initialMetrics}>
         <ThemeProvider>
-          <CourseCatalogueScreen />
+          <CourseCatalogueScreen navigation={navigation as never} />
         </ThemeProvider>
       </SafeAreaProvider>,
     )
@@ -27,5 +28,23 @@ describe("CourseCatalogueScreen", () => {
 
     await waitFor(() => expect(screen.getByText("COMP 1021")).toBeTruthy())
     expect(screen.queryByText("ACCT 1010")).toBeNull()
+  })
+
+  test("opens course details with the course code and current semester", async () => {
+    const navigation = { navigate: jest.fn() }
+    const screen = render(
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <ThemeProvider>
+          <CourseCatalogueScreen navigation={navigation as never} />
+        </ThemeProvider>
+      </SafeAreaProvider>,
+    )
+
+    fireEvent.press(await screen.findByTestId("course-card-ACCT 1010"))
+
+    expect(navigation.navigate).toHaveBeenCalledWith("CourseDetails", {
+      courseCode: "ACCT 1010",
+      termCode: "2610",
+    })
   })
 })

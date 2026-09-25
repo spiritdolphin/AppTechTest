@@ -2,13 +2,13 @@ import { useEffect, useMemo, useState } from "react"
 import { FlatList, Modal, Pressable, StyleSheet, TextStyle, View, ViewStyle } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
-import { PressableIcon } from "@/components/Icon"
 import { Text } from "@/components/Text"
 import { TextField } from "@/components/TextField"
 import { useAppTheme } from "@/theme/context"
 import type { ThemedStyle } from "@/theme/types"
 
 export interface SelectionOption {
+  disabled?: boolean
   label: string
   supportingText?: string
   value: string
@@ -75,14 +75,14 @@ export function SelectionSheet({
           <View style={themed($handle)} />
           <View style={$header}>
             <Text text={title} preset="subheading" />
-            <PressableIcon
+            <Pressable
               accessibilityLabel={`Close ${title}`}
               accessibilityRole="button"
-              icon="x"
               onPress={onClose}
-              size={20}
-              containerStyle={$closeButton}
-            />
+              style={({ pressed }) => [$closeButton, pressed && $pressedOption]}
+            >
+              <Text text="×" size="lg" accessibilityElementsHidden />
+            </Pressable>
           </View>
 
           {!!searchPlaceholder && (
@@ -106,8 +106,10 @@ export function SelectionSheet({
               const selected = item.value === selectedValue
               return (
                 <Pressable
+                  accessibilityLabel={item.label}
                   accessibilityRole="radio"
-                  accessibilityState={{ selected }}
+                  accessibilityState={{ disabled: !!item.disabled, selected }}
+                  disabled={item.disabled}
                   onPress={() => {
                     onSelect(item.value)
                     onClose()
@@ -115,6 +117,7 @@ export function SelectionSheet({
                   style={({ pressed }) => [
                     themed($option),
                     selected && themed($selectedOption),
+                    item.disabled && themed($disabledOption),
                     pressed && $pressedOption,
                   ]}
                 >
@@ -210,6 +213,11 @@ const $selectedOption: ThemedStyle<ViewStyle> = ({ colors }) => ({
 const $pressedOption: ViewStyle = {
   opacity: 0.7,
 }
+
+const $disabledOption: ThemedStyle<ViewStyle> = ({ colors }) => ({
+  backgroundColor: colors.palette.neutral200,
+  opacity: 0.48,
+})
 
 const $optionText: ViewStyle = {
   flex: 1,

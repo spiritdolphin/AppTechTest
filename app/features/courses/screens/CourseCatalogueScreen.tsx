@@ -13,6 +13,7 @@ import { Screen } from "@/components/Screen"
 import { Text } from "@/components/Text"
 import { TextField } from "@/components/TextField"
 import { translate } from "@/i18n/translate"
+import type { AppStackScreenProps } from "@/navigators/navigationTypes"
 import { useAppTheme } from "@/theme/context"
 import type { ThemedStyle } from "@/theme/types"
 
@@ -26,7 +27,9 @@ import { searchCourses } from "../utils/searchCourses"
 
 type OpenSheet = "semester" | "department" | undefined
 
-export function CourseCatalogueScreen() {
+export function CourseCatalogueScreen({
+  navigation,
+}: Pick<AppStackScreenProps<"CourseCatalogue">, "navigation">) {
   const {
     themed,
     theme: { colors },
@@ -117,8 +120,18 @@ export function CourseCatalogueScreen() {
   }, [])
 
   const renderCourse = useCallback<ListRenderItem<CatalogueCourse>>(
-    ({ item }) => <CourseCard course={item} />,
-    [],
+    ({ item }) => (
+      <CourseCard
+        course={item}
+        onPress={() =>
+          navigation.navigate("CourseDetails", {
+            courseCode: item.code,
+            termCode: selectedTermCode,
+          })
+        }
+      />
+    ),
+    [navigation, selectedTermCode],
   )
 
   const listEmpty = useMemo(() => {

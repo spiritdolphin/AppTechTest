@@ -1,5 +1,5 @@
 import { memo } from "react"
-import { TextStyle, View, ViewStyle } from "react-native"
+import { Pressable, TextStyle, View, ViewStyle } from "react-native"
 
 import { Text } from "@/components/Text"
 import { useAppTheme } from "@/theme/context"
@@ -9,6 +9,7 @@ import type { CatalogueCourse } from "../domain/types"
 
 interface CourseCardProps {
   course: CatalogueCourse
+  onPress: () => void
 }
 
 function formatCreditValue(value: number): string {
@@ -23,14 +24,15 @@ export function formatCredits(minCredits: number, maxCredits: number): string {
   return `${formatCreditValue(minCredits)}–${formatCreditValue(maxCredits)} credits`
 }
 
-export const CourseCard = memo(function CourseCard({ course }: CourseCardProps) {
+export const CourseCard = memo(function CourseCard({ course, onPress }: CourseCardProps) {
   const { themed } = useAppTheme()
 
   return (
-    <View
-      accessible
+    <Pressable
       accessibilityLabel={`${course.code}, ${course.title}, ${formatCredits(course.minCredits, course.maxCredits)}`}
-      style={themed($card)}
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [themed($card), pressed && $pressedCard]}
       testID={`course-card-${course.code}`}
     >
       <View style={$topRow}>
@@ -45,7 +47,7 @@ export const CourseCard = memo(function CourseCard({ course }: CourseCardProps) 
         size="xs"
         style={themed($credits)}
       />
-    </View>
+    </Pressable>
   )
 })
 
@@ -83,3 +85,7 @@ const $title: TextStyle = {
 const $credits: ThemedStyle<TextStyle> = ({ colors }) => ({
   color: colors.textDim,
 })
+
+const $pressedCard: ViewStyle = {
+  opacity: 0.72,
+}

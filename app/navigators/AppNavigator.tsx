@@ -3,6 +3,8 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack"
 
 import Config from "@/config"
 import { CourseCatalogueScreen } from "@/features/courses/screens/CourseCatalogueScreen"
+import { CourseDetailsScreen } from "@/features/courses/screens/CourseDetailsScreen"
+import { DependencyExplorerPlaceholderScreen } from "@/features/courses/screens/DependencyExplorerPlaceholderScreen"
 import { ErrorBoundary } from "@/screens/ErrorScreen/ErrorBoundary"
 import { useAppTheme } from "@/theme/context"
 
@@ -27,6 +29,8 @@ function AppStack() {
       }}
     >
       <Stack.Screen name="CourseCatalogue" component={CourseCatalogueScreen} />
+      <Stack.Screen name="CourseDetails" component={CourseDetailsScreen} />
+      <Stack.Screen name="DependencyExplorer" component={DependencyExplorerPlaceholderScreen} />
     </Stack.Navigator>
   )
 }
