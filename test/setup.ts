@@ -25,6 +25,22 @@ jest.doMock("react-native", () => {
   )
 })
 
+jest.mock("react-native-keyboard-controller", () => {
+  const React = jest.requireActual<typeof import("react")>("react")
+  const Native = jest.requireActual<typeof import("react-native")>("react-native")
+  type MockScrollViewInstance = React.ElementRef<typeof Native.ScrollView>
+  type MockScrollViewProps = React.ComponentProps<typeof Native.ScrollView>
+  const MockKeyboardAwareScrollView = React.forwardRef<MockScrollViewInstance, MockScrollViewProps>(
+    (props, ref) => React.createElement(Native.ScrollView, { ...props, ref }),
+  )
+  MockKeyboardAwareScrollView.displayName = "MockKeyboardAwareScrollView"
+
+  return {
+    KeyboardAwareScrollView: MockKeyboardAwareScrollView,
+    KeyboardProvider: ({ children }: React.PropsWithChildren) => children,
+  }
+})
+
 jest.mock("i18next", () => ({
   currentLocale: "en",
   t: (key: string, params: Record<string, string>) => {

@@ -2,7 +2,7 @@ import { NavigationContainer } from "@react-navigation/native"
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
 
 import Config from "@/config"
-import { CourseCatalogueScreen } from "@/screens/CourseCatalogueScreen"
+import { CourseCatalogueScreen } from "@/features/courses/screens/CourseCatalogueScreen"
 import { ErrorBoundary } from "@/screens/ErrorScreen/ErrorBoundary"
 import { useAppTheme } from "@/theme/context"
 
