@@ -52,6 +52,25 @@ function iterate(obj, stack, array) {
  */
 
 describe("i18n", () => {
+  test("interpolates dynamic translation values with the configured i18next syntax", async () => {
+    const i18next = jest.requireActual<typeof import("i18next")>("i18next")
+    const instance = i18next.createInstance()
+
+    await instance.init({
+      resources: { en },
+      lng: "en",
+      fallbackLng: "en",
+      interpolation: { escapeValue: false },
+    })
+
+    expect(instance.t("courseCatalogue:courseCount", { formattedCount: "3,928" })).toBe(
+      "3,928 courses",
+    )
+    expect(instance.t("errorScreen:traceTitle", { name: "CourseCatalogueScreen" })).toBe(
+      "Error from CourseCatalogueScreen stack",
+    )
+  })
+
   test("There are no missing keys", (done) => {
     // Actual command output:
     // grep "[T\|t]x=[{]\?\"\S*\"[}]\?\|translate(\"\S*\"" -ohr './app' | grep -o "\".*\""

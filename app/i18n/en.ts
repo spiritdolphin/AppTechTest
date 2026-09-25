@@ -8,7 +8,7 @@ const en = {
     title: "Something went wrong",
     friendlySubtitle: "The app hit an unexpected error. Reset it to try again.",
     reset: "RESET APP",
-    traceTitle: "Error from %{name} stack",
+    traceTitle: "Error from {{name}} stack",
   },
   emptyStateComponent: {
     generic: {
@@ -28,7 +28,7 @@ const en = {
     departmentSheetTitle: "Department",
     departmentSearchPlaceholder: "Search departments...",
     allDepartments: "All Departments",
-    courseCount: "%{formattedCount} courses",
+    courseCount: "{{formattedCount}} courses",
     loading: "Loading courses...",
     error: "Unable to load the course catalogue.",
     errorTitle: "Could not load courses",

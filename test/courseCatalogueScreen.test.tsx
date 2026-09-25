@@ -4,6 +4,11 @@ import { SafeAreaProvider } from "react-native-safe-area-context"
 import { CourseCatalogueScreen } from "../app/features/courses/screens/CourseCatalogueScreen"
 import { ThemeProvider } from "../app/theme/context"
 
+jest.mock("../app/i18n/translate", () => ({
+  translate: (key: string, options?: { formattedCount?: string }) =>
+    key === "courseCatalogue:courseCount" ? `${options?.formattedCount} courses` : key,
+}))
+
 const initialMetrics = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
   insets: { top: 47, left: 0, right: 0, bottom: 34 },
@@ -22,6 +27,7 @@ describe("CourseCatalogueScreen", () => {
 
     const resultCount = await screen.findByTestId("course-result-count")
     expect(resultCount.props.accessibilityLabel).toBe("3,928 courses")
+    expect(screen.getByText("3,928 courses")).toBeTruthy()
     expect(screen.getByText("ACCT 1010")).toBeTruthy()
 
     fireEvent.changeText(screen.getByTestId("course-search-input"), "comp-1021")
