@@ -10,10 +10,14 @@ import type { ThemedStyle } from "@/theme/types"
 
 import { Accordion } from "../components/Accordion"
 import { formatCredits } from "../components/CourseCard"
+import { DependencyGraphView } from "../components/DependencyGraphView"
 import { SelectionOption, SelectionSheet } from "../components/SelectionSheet"
 import { courseRepository } from "../data/generatedCourseRepository"
 import type { CourseRepository } from "../data/repository"
 import type { CourseDetail } from "../domain/types"
+import { useDependencyGraph } from "../utils/useDependencyGraph"
+
+const COMPACT_GRAPH_MAX_DEPTH = 1
 
 type CourseDetailsScreenProps = AppStackScreenProps<"CourseDetails"> & {
   repository?: CourseRepository
@@ -162,6 +166,17 @@ export function CourseDetailsScreen({
       [attribute.label, attribute.value, attribute.description].some((value) => value.trim()),
     ) ?? []
   const visibleLearningOutcomes = detail?.learningOutcomes.filter((outcome) => outcome.trim()) ?? []
+  const {
+    graph: dependencyGraph,
+    isLoading: dependencyGraphLoading,
+    loadError: dependencyGraphError,
+    retry: retryDependencyGraph,
+  } = useDependencyGraph({
+    courseCode,
+    maxDepth: COMPACT_GRAPH_MAX_DEPTH,
+    repository,
+    termCode: selectedTermCode,
+  })
 
   return (
     <Screen
@@ -285,11 +300,70 @@ export function CourseDetailsScreen({
             {!!detail.exclusion.trim() && (
               <LabelledValue label="Exclusion" value={detail.exclusion} />
             )}
+
+            <Text
+              accessibilityRole="header"
+              text="DEPENDENCY VISUALIZER"
+              size="xs"
+              weight="semiBold"
+              style={themed($graphEyebrow)}
+              testID="dependency-visualizer-label"
+            />
+
+            {!!dependencyGraphError ? (
+              <View style={themed($graphState)}>
+                <Text text="Could not load dependency graph" weight="semiBold" />
+                <Text
+                  text={dependencyGraphError}
+                  size="xs"
+                  style={[themed($secondaryText), $centerText]}
+                />
+                <Button text="Retry dependency graph" onPress={retryDependencyGraph} />
+              </View>
+            ) : dependencyGraphLoading || !dependencyGraph ? (
+              <View accessibilityLabel="Loading dependency graph" style={themed($graphState)}>
+                <ActivityIndicator color={colors.tint} />
+                <Text text="Loading dependency graph…" size="xs" style={themed($secondaryText)} />
+              </View>
+            ) : !dependencyGraph.currentCourseAvailable ? (
+              <View style={themed($graphState)}>
+                <Text text="Dependency graph unavailable" weight="semiBold" />
+                <Text
+                  text={`This course is not offered in ${selectedSemester?.termName ?? selectedTermCode}.`}
+                  size="xs"
+                  style={[themed($secondaryText), $centerText]}
+                />
+              </View>
+            ) : (
+              <>
+                {dependencyGraph.mode === "extracted" && (
+                  <View style={themed($graphNotice)}>
+                    <Text text="Extracted courses" weight="semiBold" size="sm" />
+                    <Text
+                      text="Some conditions could not be interpreted reliably. Only recognized course references are shown."
+                      size="xs"
+                      style={themed($secondaryText)}
+                    />
+                  </View>
+                )}
+                <DependencyGraphView
+                  graph={dependencyGraph}
+                  onOpenCourse={(prerequisiteCode) =>
+                    navigation.push("CourseDetails", {
+                      courseCode: prerequisiteCode,
+                      termCode: selectedTermCode,
+                    })
+                  }
+                  termName={selectedSemester?.termName ?? selectedTermCode}
+                />
+              </>
+            )}
+
             <Button
-              accessibilityLabel={`Explore dependency graph for ${detail.code}`}
-              text="Explore Dependency Graph"
+              accessibilityLabel={`View dependency graph for ${detail.code} in fullscreen`}
+              text="View In Fullscreen"
               onPress={() =>
-                navigation.navigate("DependencyExplorer", {
+                navigation.navigate("DependencyExplorerFullscreen", {
                   courseCode: detail.code,
                   termCode: detail.termCode,
                 })
@@ -472,6 +546,28 @@ const $graphButton: ThemedStyle<ViewStyle> = ({ colors }) => ({
 
 const $graphButtonText: ThemedStyle<TextStyle> = ({ colors }) => ({
   color: colors.palette.neutral100,
+})
+
+const $graphEyebrow: ThemedStyle<TextStyle> = ({ colors }) => ({
+  color: colors.tint,
+  letterSpacing: 1.1,
+})
+
+const $graphState: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
+  alignItems: "center",
+  backgroundColor: colors.palette.neutral100,
+  borderRadius: 18,
+  gap: spacing.xs,
+  justifyContent: "center",
+  minHeight: 112,
+  padding: spacing.md,
+})
+
+const $graphNotice: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
+  backgroundColor: colors.palette.accent100,
+  borderRadius: 16,
+  gap: spacing.xxs,
+  padding: spacing.md,
 })
 
 const $centerState: ThemedStyle<ViewStyle> = ({ spacing }) => ({

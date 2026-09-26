@@ -16,7 +16,6 @@ import type {
 interface DependencyGraphViewProps {
   graph: ResolvedDependencyGraph
   onOpenCourse: (courseCode: string) => void
-  onOpenFullscreen?: () => void
   termName: string
   variant?: "compact" | "detailed"
 }
@@ -190,7 +189,6 @@ function DependencyItem({ item, onOpenCourse, path, termName, variant }: Depende
 export function DependencyGraphView({
   graph,
   onOpenCourse,
-  onOpenFullscreen,
   termName,
   variant = "compact",
 }: DependencyGraphViewProps) {
@@ -248,18 +246,6 @@ export function DependencyGraphView({
           )}
         </View>
       </View>
-      {!!onOpenFullscreen && (
-        <Pressable
-          accessibilityLabel="Open dependency graph fullscreen"
-          accessibilityRole="button"
-          onPress={onOpenFullscreen}
-          style={({ pressed }) => [themed($fullscreenButton), pressed && $pressed]}
-          testID="dependency-fullscreen-button"
-        >
-          <Text text="⛶" size="sm" accessibilityElementsHidden importantForAccessibility="no" />
-          <Text text="Fullscreen" size="xs" weight="semiBold" />
-        </Pressable>
-      )}
     </View>
   )
 }
@@ -434,16 +420,3 @@ const $centerText: TextStyle = {
 const $pressed: ViewStyle = {
   opacity: 0.72,
 }
-
-const $fullscreenButton: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
-  alignItems: "center",
-  alignSelf: "flex-end",
-  borderColor: colors.border,
-  borderRadius: 18,
-  borderWidth: 1,
-  flexDirection: "row",
-  gap: spacing.xs,
-  justifyContent: "center",
-  minHeight: 44,
-  paddingHorizontal: spacing.md,
-})

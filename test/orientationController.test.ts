@@ -23,9 +23,6 @@ describe("app orientation controller", () => {
     expect(orientationLockForRoute("CourseDetails")).toBe(
       ScreenOrientation.OrientationLock.PORTRAIT_UP,
     )
-    expect(orientationLockForRoute("DependencyExplorer")).toBe(
-      ScreenOrientation.OrientationLock.PORTRAIT_UP,
-    )
     expect(orientationLockForRoute("DependencyExplorerFullscreen")).toBe(
       ScreenOrientation.OrientationLock.LANDSCAPE,
     )

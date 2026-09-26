@@ -3,6 +3,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context"
 
 import { CourseRepository } from "../app/features/courses/data/repository"
 import type {
+  CatalogueCourse,
   CatalogueFile,
   CourseDetail,
   DetailsFile,
@@ -17,6 +18,18 @@ jest.mock("@react-navigation/native", () => {
     "@react-navigation/native",
   )
   return { ...actual, useScrollToTop: jest.fn() }
+})
+
+jest.mock("react-native-svg", () => {
+  const React = jest.requireActual<typeof import("react")>("react")
+  const Native = jest.requireActual<typeof import("react-native")>("react-native")
+  return {
+    __esModule: true,
+    default: ({ children, ...props }: React.PropsWithChildren) =>
+      React.createElement(Native.View, props, children),
+    Path: () => null,
+    Polygon: () => null,
+  }
 })
 
 const initialMetrics = {
@@ -55,22 +68,22 @@ const semestersFile: SemestersFile = {
 }
 
 function catalogue(termCode: string, available = false): CatalogueFile {
+  const catalogueCourse = (code: string): CatalogueCourse => ({
+    id: `${termCode}-${code}`,
+    code,
+    normalizedCode: code.replaceAll(" ", "").toLowerCase(),
+    title: `${code} title`,
+    normalizedTitle: `${code.replaceAll(" ", "").toLowerCase()}title`,
+    departmentCode: code.split(" ")[0],
+    minCredits: 3,
+    maxCredits: 3,
+  })
+
   return {
     schemaVersion: 1,
     termCode,
     courses: available
-      ? [
-          {
-            id: `${termCode}-course-id`,
-            code: "COMP 1021",
-            normalizedCode: "comp1021",
-            title: "Course title",
-            normalizedTitle: "coursetitle",
-            departmentCode: "COMP",
-            minCredits: 3,
-            maxCredits: 3,
-          },
-        ]
+      ? [catalogueCourse("COMP 1021"), catalogueCourse("COMP 1001"), catalogueCourse("MATH 1012")]
       : [],
   }
 }
@@ -124,19 +137,27 @@ function details(termCode: string, courses: CourseDetail[] = []): DetailsFile {
   }
 }
 
-function prerequisites(termCode: string): PrerequisitesFile {
+function prerequisites(
+  termCode: string,
+  byCourseCode: PrerequisitesFile["byCourseCode"] = {},
+): PrerequisitesFile {
   return {
     schemaVersion: 1,
     termCode,
-    byCourseCode: {},
+    byCourseCode,
     reverseByCourseCode: {},
   }
 }
 
+type TermCode = "new" | "old" | "missing"
+type DetailsLoaders = Partial<Record<TermCode, () => DetailsFile | Promise<DetailsFile>>>
+type PrerequisitesLoaders = Partial<
+  Record<TermCode, () => PrerequisitesFile | Promise<PrerequisitesFile>>
+>
+
 function createRepository(
-  overrides: Partial<
-    Record<"new" | "old" | "missing", () => DetailsFile | Promise<DetailsFile>>
-  > = {},
+  detailsOverrides: DetailsLoaders = {},
+  prerequisitesOverrides: PrerequisitesLoaders = {},
 ) {
   return new CourseRepository({
     semestersFile,
@@ -146,20 +167,20 @@ function createRepository(
       missing: () => catalogue("missing"),
     },
     detailsLoaders: {
-      new: overrides.new ?? (() => details("new", [courseDetail("new")])),
-      old: overrides.old ?? (() => details("old", [courseDetail("old")])),
-      missing: overrides.missing ?? (() => details("missing")),
+      new: detailsOverrides.new ?? (() => details("new", [courseDetail("new")])),
+      old: detailsOverrides.old ?? (() => details("old", [courseDetail("old")])),
+      missing: detailsOverrides.missing ?? (() => details("missing")),
     },
     prerequisitesLoaders: {
-      new: () => prerequisites("new"),
-      old: () => prerequisites("old"),
-      missing: () => prerequisites("missing"),
+      new: prerequisitesOverrides.new ?? (() => prerequisites("new")),
+      old: prerequisitesOverrides.old ?? (() => prerequisites("old")),
+      missing: prerequisitesOverrides.missing ?? (() => prerequisites("missing")),
     },
   })
 }
 
 function renderDetails(repository: CourseRepository, termCode = "new") {
-  const navigation = { goBack: jest.fn(), navigate: jest.fn() }
+  const navigation = { goBack: jest.fn(), navigate: jest.fn(), push: jest.fn() }
   const route = {
     key: "course-details-test",
     name: "CourseDetails" as const,
@@ -181,7 +202,27 @@ function renderDetails(repository: CourseRepository, termCode = "new") {
 
 describe("CourseDetailsScreen", () => {
   test("renders the main course content and preserves original requirement text", async () => {
-    const { navigation, screen } = renderDetails(createRepository())
+    const originalPrerequisite = "MATH 1012 AND (MATH 1012 OR PHYS 1000)"
+    const repository = createRepository(
+      {
+        new: () => details("new", [courseDetail("new", { prerequisite: originalPrerequisite })]),
+      },
+      {
+        new: () =>
+          prerequisites("new", {
+            "COMP 1021": {
+              originalText: originalPrerequisite,
+              referencedCourseCodes: ["MATH 1012", "PHYS 1000"],
+            },
+            "MATH 1012": {
+              originalText: "COMP 1001",
+              referencedCourseCodes: ["COMP 1001"],
+            },
+          }),
+      },
+    )
+    const resolveSpy = jest.spyOn(repository, "resolveDependencyGraph")
+    const { navigation, screen } = renderDetails(repository)
 
     expect(await screen.findByText("Introduction to Computer Science")).toBeTruthy()
     expect(screen.getByText("CSE | COMP 1021")).toBeTruthy()
@@ -189,7 +230,7 @@ describe("CourseDetailsScreen", () => {
     expect(screen.getByText("Description for new.")).toBeTruthy()
     expect(screen.queryByText("CWB Campus")).toBeNull()
     expect(screen.getByText("UG")).toBeTruthy()
-    expect(screen.getByText("MATH 1012 AND COMP 1001")).toBeTruthy()
+    expect(screen.getByText(originalPrerequisite)).toBeTruthy()
     expect(screen.getByText("COMP 1002")).toBeTruthy()
     expect(screen.getByText("COMP 1022P")).toBeTruthy()
 
@@ -206,8 +247,25 @@ describe("CourseDetailsScreen", () => {
     fireEvent.press(screen.getByLabelText("Learning Outcomes (1)"))
     expect(screen.getByText("Write and test computer programs.")).toBeTruthy()
 
-    fireEvent.press(screen.getByText("Explore Dependency Graph"))
-    expect(navigation.navigate).toHaveBeenCalledWith("DependencyExplorer", {
+    expect(await screen.findByText("AND")).toBeTruthy()
+    expect(screen.getByText("OR")).toBeTruthy()
+    expect(screen.getByText("Repeated")).toBeTruthy()
+    expect(screen.getAllByTestId("dependency-node-MATH 1012")).toHaveLength(2)
+    expect(screen.getByTestId("dependency-node-PHYS 1000")).toBeDisabled()
+    expect(screen.getByText("Not Offered: New Semester")).toBeTruthy()
+    expect(screen.queryByText("REQUIRES")).toBeNull()
+    expect(screen.queryByText("MATH 1012 title")).toBeNull()
+    expect(resolveSpy).toHaveBeenCalledWith("new", "COMP 1021", 1)
+
+    fireEvent.press(screen.getAllByTestId("dependency-node-MATH 1012")[0])
+    expect(navigation.push).toHaveBeenCalledWith("CourseDetails", {
+      courseCode: "MATH 1012",
+      termCode: "new",
+    })
+
+    expect(screen.queryByText("Explore Dependency Graph")).toBeNull()
+    fireEvent.press(screen.getByText("View In Fullscreen"))
+    expect(navigation.navigate).toHaveBeenCalledWith("DependencyExplorerFullscreen", {
       courseCode: "COMP 1021",
       termCode: "new",
     })
@@ -238,8 +296,29 @@ describe("CourseDetailsScreen", () => {
   })
 
   test("disables unavailable semesters and loads the selected available version", async () => {
-    const { screen } = renderDetails(createRepository())
+    const { screen } = renderDetails(
+      createRepository(
+        {},
+        {
+          new: () =>
+            prerequisites("new", {
+              "COMP 1021": {
+                originalText: "COMP 1001",
+                referencedCourseCodes: ["COMP 1001"],
+              },
+            }),
+          old: () =>
+            prerequisites("old", {
+              "COMP 1021": {
+                originalText: "MATH 1012",
+                referencedCourseCodes: ["MATH 1012"],
+              },
+            }),
+        },
+      ),
+    )
     await screen.findByText("Introduction to Computer Science")
+    expect(await screen.findByTestId("dependency-node-COMP 1001")).toBeTruthy()
 
     fireEvent.press(screen.getByTestId("details-semester-selector"))
 
@@ -258,6 +337,49 @@ describe("CourseDetailsScreen", () => {
     expect(screen.getByText("PG")).toBeTruthy()
     expect(screen.queryByText("CSE | COMP 1021")).toBeNull()
     expect(screen.queryByText("UG")).toBeNull()
+    expect(await screen.findByTestId("dependency-node-MATH 1012")).toBeTruthy()
+    expect(screen.queryByTestId("dependency-node-COMP 1001")).toBeNull()
+  })
+
+  test("renders inline dependency loading, retry, empty, and extracted states", async () => {
+    let resolvePrerequisites: ((file: PrerequisitesFile) => void) | undefined
+    const pendingPrerequisites = new Promise<PrerequisitesFile>((resolve) => {
+      resolvePrerequisites = resolve
+    })
+    const loading = renderDetails(createRepository({}, { new: () => pendingPrerequisites }))
+    await loading.screen.findByText("Introduction to Computer Science")
+    expect(loading.screen.getByLabelText("Loading dependency graph")).toBeTruthy()
+    loading.screen.unmount()
+    resolvePrerequisites?.(prerequisites("new"))
+
+    const prerequisitesLoader = jest
+      .fn<PrerequisitesFile | Promise<PrerequisitesFile>, []>()
+      .mockRejectedValueOnce(new Error("Broken prerequisite shard"))
+      .mockReturnValue(prerequisites("new"))
+    const retry = renderDetails(createRepository({}, { new: prerequisitesLoader }))
+    expect(await retry.screen.findByText("Could not load dependency graph")).toBeTruthy()
+    expect(retry.screen.getByText("Broken prerequisite shard")).toBeTruthy()
+    fireEvent.press(retry.screen.getByText("Retry dependency graph"))
+    expect(await retry.screen.findByText("No prerequisites")).toBeTruthy()
+    expect(prerequisitesLoader).toHaveBeenCalledTimes(2)
+    retry.screen.unmount()
+
+    const extracted = renderDetails(
+      createRepository(
+        {},
+        {
+          new: () =>
+            prerequisites("new", {
+              "COMP 1021": {
+                originalText: "Any CHEM course at or above 1000-level or CORE 1120",
+                referencedCourseCodes: [],
+              },
+            }),
+        },
+      ),
+    )
+    expect(await extracted.screen.findAllByText("Extracted courses")).toHaveLength(2)
+    expect(extracted.screen.getByTestId("dependency-node-CORE 1120")).toBeDisabled()
   })
 
   test("omits empty department, career, and campus values without malformed badges", async () => {

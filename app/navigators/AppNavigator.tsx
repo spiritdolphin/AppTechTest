@@ -7,7 +7,6 @@ import Config from "@/config"
 import { CourseCatalogueScreen } from "@/features/courses/screens/CourseCatalogueScreen"
 import { CourseDetailsScreen } from "@/features/courses/screens/CourseDetailsScreen"
 import { DependencyExplorerFullscreenScreen } from "@/features/courses/screens/DependencyExplorerFullscreenScreen"
-import { DependencyExplorerScreen } from "@/features/courses/screens/DependencyExplorerScreen"
 import { ErrorBoundary } from "@/screens/ErrorScreen/ErrorBoundary"
 import { useAppTheme } from "@/theme/context"
 
@@ -40,11 +39,6 @@ function AppStack() {
       <Stack.Screen
         name="CourseDetails"
         component={CourseDetailsScreen}
-        options={{ orientation: "portrait_up" }}
-      />
-      <Stack.Screen
-        name="DependencyExplorer"
-        component={DependencyExplorerScreen}
         options={{ orientation: "portrait_up" }}
       />
       <Stack.Screen

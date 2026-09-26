@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react"
 import { ActivityIndicator, Pressable, ScrollView, TextStyle, View, ViewStyle } from "react-native"
 
 import { Button } from "@/components/Button"
@@ -11,7 +10,7 @@ import type { ThemedStyle } from "@/theme/types"
 import { DependencyGraphView } from "../components/DependencyGraphView"
 import { courseRepository } from "../data/generatedCourseRepository"
 import type { CourseRepository } from "../data/repository"
-import type { ResolvedDependencyGraph } from "../domain/dependencyGraph"
+import { useDependencyGraph } from "../utils/useDependencyGraph"
 
 const FULLSCREEN_GRAPH_MAX_DEPTH = 3
 
@@ -30,32 +29,14 @@ export function DependencyExplorerFullscreenScreen({
     theme: { colors },
   } = useAppTheme()
   const { courseCode, termCode } = route.params
-  const [graph, setGraph] = useState<ResolvedDependencyGraph>()
-  const [loadError, setLoadError] = useState<string>()
-  const [loadAttempt, setLoadAttempt] = useState(0)
   const semester = repository.getSemester(termCode)
   const termName = semester?.termName ?? termCode
-
-  useEffect(() => {
-    let active = true
-    setGraph(undefined)
-    setLoadError(undefined)
-
-    repository
-      .resolveDependencyGraph(termCode, courseCode, FULLSCREEN_GRAPH_MAX_DEPTH)
-      .then((resolvedGraph) => {
-        if (active) setGraph(resolvedGraph)
-      })
-      .catch((error: unknown) => {
-        if (active) {
-          setLoadError(error instanceof Error ? error.message : "Unable to load prerequisites.")
-        }
-      })
-
-    return () => {
-      active = false
-    }
-  }, [courseCode, loadAttempt, repository, termCode])
+  const { graph, isLoading, loadError, retry } = useDependencyGraph({
+    courseCode,
+    maxDepth: FULLSCREEN_GRAPH_MAX_DEPTH,
+    repository,
+    termCode,
+  })
 
   return (
     <Screen
@@ -86,13 +67,9 @@ export function DependencyExplorerFullscreenScreen({
         <View style={themed($centerState)}>
           <Text text="Could not load dependencies" preset="subheading" style={$centerText} />
           <Text text={loadError} size="sm" style={[themed($secondaryText), $centerText]} />
-          <Button
-            text="Try again"
-            onPress={() => setLoadAttempt((attempt) => attempt + 1)}
-            style={$stateButton}
-          />
+          <Button text="Try again" onPress={retry} style={$stateButton} />
         </View>
-      ) : !graph ? (
+      ) : isLoading || !graph ? (
         <View accessibilityLabel="Loading fullscreen dependencies" style={themed($centerState)}>
           <ActivityIndicator color={colors.tint} size="large" />
           <Text text="Loading detailed graph…" size="sm" style={themed($secondaryText)} />
