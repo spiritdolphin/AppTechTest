@@ -82,20 +82,13 @@ interface DependencyItemProps {
 }
 
 interface CourseNodeProps {
-  emphasis?: "default" | "prerequisite"
   item: ResolvedCourseDependency
   onOpenCourse: (courseCode: string) => void
   termName: string
   variant: "compact" | "detailed"
 }
 
-function CourseNode({
-  emphasis = "default",
-  item,
-  onOpenCourse,
-  termName,
-  variant,
-}: CourseNodeProps) {
+function CourseNode({ item, onOpenCourse, termName, variant }: CourseNodeProps) {
   const { themed } = useAppTheme()
   const marker = markerLabel(item.marker)
   const compactTerm = compactTermName(termName)
@@ -119,7 +112,6 @@ function CourseNode({
       style={({ pressed }) => [
         themed($courseNode),
         variant === "detailed" && themed($detailedCourseNode),
-        emphasis === "prerequisite" && themed($prerequisiteCourseNode),
         !item.available && themed($unavailableNode),
         pressed && $pressed,
       ]}
@@ -390,13 +382,7 @@ function DetailedPrerequisiteTreeItem({
       style={$logicTreeCourse}
       testID={`prerequisite-column-${item.courseCode}`}
     >
-      <CourseNode
-        emphasis="prerequisite"
-        item={item}
-        onOpenCourse={onOpenCourse}
-        termName={termName}
-        variant="detailed"
-      />
+      <CourseNode item={item} onOpenCourse={onOpenCourse} termName={termName} variant="detailed" />
     </View>
   )
 }
@@ -886,11 +872,6 @@ const $detailedCourseNode: ThemedStyle<ViewStyle> = ({ spacing }) => ({
   minHeight: 76,
   minWidth: 144,
   paddingHorizontal: spacing.sm,
-})
-
-const $prerequisiteCourseNode: ThemedStyle<ViewStyle> = ({ colors }) => ({
-  backgroundColor: colors.palette.secondary100,
-  borderColor: colors.palette.secondary300,
 })
 
 const $unavailableNode: ThemedStyle<ViewStyle> = ({ colors }) => ({

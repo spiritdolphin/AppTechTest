@@ -193,14 +193,9 @@ describe("DependencyExplorerFullscreenScreen", () => {
     expect(screen.getByTestId("dependency-node-COMP 3000").props.style).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          backgroundColor: colors.palette.secondary100,
-          borderColor: colors.palette.secondary300,
+          backgroundColor: colors.palette.neutral100,
+          borderColor: colors.border,
         }),
-      ]),
-    )
-    expect(screen.getByTestId("dependency-node-MATH 2000").props.style).not.toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ backgroundColor: colors.palette.secondary100 }),
       ]),
     )
     expect(currentCourseNode.props.style).toEqual(
