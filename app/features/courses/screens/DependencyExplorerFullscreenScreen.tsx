@@ -40,88 +40,118 @@ export function DependencyExplorerFullscreenScreen({
 
   return (
     <Screen
-      preset="scroll"
+      preset="fixed"
       safeAreaEdges={["top", "bottom", "left", "right"]}
       contentContainerStyle={themed($screenContent)}
-      ScrollViewProps={{ contentInsetAdjustmentBehavior: "automatic" }}
     >
-      <View style={$topBar}>
-        <View style={themed($headingRow)}>
-          <Text text="DEPENDENCY VISUALIZER" size="xs" weight="semiBold" style={themed($eyebrow)} />
-          <Text text={courseCode} preset="subheading" />
-          <Text text={termName} size="xs" style={themed($secondaryText)} />
+      <View style={themed($fixedContent)} testID="fullscreen-fixed-content">
+        <View style={$topBar} testID="fullscreen-fixed-header">
+          <View style={themed($headingRow)}>
+            <Text
+              text="DEPENDENCY VISUALIZER"
+              size="xs"
+              weight="semiBold"
+              style={themed($eyebrow)}
+            />
+            <Text text={courseCode} preset="subheading" />
+            <Text text={termName} size="xs" style={themed($secondaryText)} />
+          </View>
+          <Pressable
+            accessibilityLabel="Close fullscreen dependency graph"
+            accessibilityRole="button"
+            onPress={navigation.goBack}
+            style={({ pressed }) => [themed($closeButton), pressed && $pressed]}
+            testID="dependency-fullscreen-close"
+          >
+            <Text text="Close" size="xs" weight="semiBold" />
+            <Text text="×" size="lg" accessibilityElementsHidden importantForAccessibility="no" />
+          </Pressable>
         </View>
-        <Pressable
-          accessibilityLabel="Close fullscreen dependency graph"
-          accessibilityRole="button"
-          onPress={navigation.goBack}
-          style={({ pressed }) => [themed($closeButton), pressed && $pressed]}
-          testID="dependency-fullscreen-close"
-        >
-          <Text text="Close" size="xs" weight="semiBold" />
-          <Text text="×" size="lg" accessibilityElementsHidden importantForAccessibility="no" />
-        </Pressable>
+
+        {!loadError && !isLoading && graph?.currentCourseAvailable && !!graph.originalText && (
+          <View style={themed($sourceCard)} testID="fullscreen-original-text-card">
+            <Text text="Original Text" size="xs" weight="semiBold" />
+            <ScrollView
+              contentContainerStyle={$sourceTextContent}
+              contentInsetAdjustmentBehavior="never"
+              nestedScrollEnabled
+              showsVerticalScrollIndicator
+              style={$sourceTextScroll}
+              testID="fullscreen-original-text-scroll"
+            >
+              <Text text={graph.originalText} size="xs" selectable style={$sourceText} />
+            </ScrollView>
+          </View>
+        )}
       </View>
 
-      {!!loadError ? (
-        <View style={themed($centerState)}>
-          <Text text="Could not load dependencies" preset="subheading" style={$centerText} />
-          <Text text={loadError} size="sm" style={[themed($secondaryText), $centerText]} />
-          <Button text="Try again" onPress={retry} style={$stateButton} />
-        </View>
-      ) : isLoading || !graph ? (
-        <View accessibilityLabel="Loading fullscreen dependencies" style={themed($centerState)}>
-          <ActivityIndicator color={colors.tint} size="large" />
-          <Text text="Loading detailed graph…" size="sm" style={themed($secondaryText)} />
-        </View>
-      ) : !graph.currentCourseAvailable ? (
-        <View style={themed($centerState)}>
-          <Text text={`${courseCode} is unavailable`} preset="subheading" style={$centerText} />
-          <Text
-            text={`This course is not offered in ${termName}. Close fullscreen and choose another semester.`}
-            size="sm"
-            style={[themed($secondaryText), $centerText]}
-          />
-        </View>
-      ) : (
-        <>
-          {!!graph.originalText && (
-            <View style={themed($sourceCard)} testID="fullscreen-original-text-card">
-              <Text text="Original Text" size="xs" weight="semiBold" />
-              <Text text={graph.originalText} size="xs" selectable style={$sourceText} />
-            </View>
-          )}
-
-          <ScrollView
-            horizontal
-            contentContainerStyle={$graphScrollContent}
-            showsHorizontalScrollIndicator
-            testID="fullscreen-graph-scroll"
-          >
-            <View style={$graphWidth}>
-              <DependencyGraphView
-                graph={graph}
-                onOpenCourse={(prerequisiteCode) =>
-                  navigation.replace("CourseDetails", {
-                    courseCode: prerequisiteCode,
-                    parentCourseCode: courseCode,
-                    termCode,
-                  })
-                }
-                termName={termName}
-                variant="detailed"
-              />
-            </View>
-          </ScrollView>
-        </>
-      )}
+      <View style={$contentRegion} testID="fullscreen-content-region">
+        {!!loadError ? (
+          <View style={themed($centerState)}>
+            <Text text="Could not load dependencies" preset="subheading" style={$centerText} />
+            <Text text={loadError} size="sm" style={[themed($secondaryText), $centerText]} />
+            <Button text="Try again" onPress={retry} style={$stateButton} />
+          </View>
+        ) : isLoading || !graph ? (
+          <View accessibilityLabel="Loading fullscreen dependencies" style={themed($centerState)}>
+            <ActivityIndicator color={colors.tint} size="large" />
+            <Text text="Loading detailed graph…" size="sm" style={themed($secondaryText)} />
+          </View>
+        ) : !graph.currentCourseAvailable ? (
+          <View style={themed($centerState)}>
+            <Text text={`${courseCode} is unavailable`} preset="subheading" style={$centerText} />
+            <Text
+              text={`This course is not offered in ${termName}. Close fullscreen and choose another semester.`}
+              size="sm"
+              style={[themed($secondaryText), $centerText]}
+            />
+          </View>
+        ) : (
+          <View style={$graphViewport} testID="fullscreen-graph-viewport">
+            <ScrollView
+              contentContainerStyle={$graphVerticalScrollContent}
+              contentInsetAdjustmentBehavior="never"
+              nestedScrollEnabled
+              showsVerticalScrollIndicator
+              style={$graphVerticalScroll}
+              testID="fullscreen-graph-vertical-scroll"
+            >
+              <ScrollView
+                horizontal
+                contentContainerStyle={$graphScrollContent}
+                contentInsetAdjustmentBehavior="never"
+                nestedScrollEnabled
+                showsHorizontalScrollIndicator
+                testID="fullscreen-graph-scroll"
+              >
+                <View style={$graphWidth}>
+                  <DependencyGraphView
+                    graph={graph}
+                    onOpenCourse={(prerequisiteCode) =>
+                      navigation.replace("CourseDetails", {
+                        courseCode: prerequisiteCode,
+                        parentCourseCode: courseCode,
+                        termCode,
+                      })
+                    }
+                    termName={termName}
+                    variant="detailed"
+                  />
+                </View>
+              </ScrollView>
+            </ScrollView>
+          </View>
+        )}
+      </View>
     </Screen>
   )
 }
 
 const $screenContent: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
   backgroundColor: colors.background,
+  flex: 1,
   gap: spacing.sm,
+  justifyContent: "flex-start",
   paddingBottom: spacing.lg,
   paddingHorizontal: spacing.lg,
   paddingTop: spacing.sm,
@@ -133,11 +163,17 @@ const $topBar: ViewStyle = {
   justifyContent: "space-between",
 }
 
+const $fixedContent: ThemedStyle<ViewStyle> = ({ spacing }) => ({
+  gap: spacing.sm,
+})
+
 const $headingRow: ThemedStyle<ViewStyle> = ({ spacing }) => ({
   alignItems: "baseline",
+  flex: 1,
   flexDirection: "row",
   flexWrap: "wrap",
   gap: spacing.sm,
+  minWidth: 0,
 })
 
 const $eyebrow: ThemedStyle<TextStyle> = ({ colors }) => ({
@@ -162,18 +198,47 @@ const $closeButton: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
 })
 
 const $sourceCard: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
+  alignItems: "flex-start",
   backgroundColor: colors.palette.neutral100,
   borderRadius: 16,
   flexDirection: "row",
-  flexWrap: "wrap",
   gap: spacing.sm,
   paddingHorizontal: spacing.md,
   paddingVertical: spacing.sm,
 })
 
 const $sourceText: TextStyle = {
-  flex: 1,
   minWidth: 0,
+}
+
+const $sourceTextScroll: ViewStyle = {
+  flex: 1,
+  maxHeight: 72,
+  minHeight: 24,
+  minWidth: 0,
+}
+
+const $sourceTextContent: ViewStyle = {
+  flexGrow: 1,
+  justifyContent: "center",
+}
+
+const $contentRegion: ViewStyle = {
+  flex: 1,
+  minHeight: 0,
+}
+
+const $graphViewport: ViewStyle = {
+  flex: 1,
+  minHeight: 0,
+}
+
+const $graphVerticalScroll: ViewStyle = {
+  flex: 1,
+}
+
+const $graphVerticalScrollContent: ViewStyle = {
+  flexGrow: 1,
 }
 
 const $graphScrollContent: ViewStyle = {
@@ -187,9 +252,10 @@ const $graphWidth: ViewStyle = {
 
 const $centerState: ThemedStyle<ViewStyle> = ({ spacing }) => ({
   alignItems: "center",
+  flex: 1,
   gap: spacing.sm,
   justifyContent: "center",
-  minHeight: 220,
+  minHeight: 0,
   paddingHorizontal: spacing.lg,
 })
 

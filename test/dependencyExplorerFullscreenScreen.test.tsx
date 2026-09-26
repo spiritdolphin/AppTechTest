@@ -1,4 +1,4 @@
-import { fireEvent, render } from "@testing-library/react-native"
+import { fireEvent, render, within } from "@testing-library/react-native"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 
 import { CourseRepository } from "../app/features/courses/data/repository"
@@ -142,6 +142,28 @@ describe("DependencyExplorerFullscreenScreen", () => {
     expect(screen.getByTestId("dependency-title-PHYS 1000")).toHaveTextContent("PHYS 1000 title")
     expect(screen.getAllByText("REQUIRES")).toHaveLength(2)
     expect(resolveSpy).toHaveBeenCalledWith("2610", "COMP 4000", 3)
+
+    const fixedContent = screen.getByTestId("fullscreen-fixed-content")
+    const contentRegion = screen.getByTestId("fullscreen-content-region")
+    const graphViewport = screen.getByTestId("fullscreen-graph-viewport")
+    const originalTextScroll = screen.getByTestId("fullscreen-original-text-scroll")
+    const verticalGraphScroll = screen.getByTestId("fullscreen-graph-vertical-scroll")
+    const horizontalGraphScroll = screen.getByTestId("fullscreen-graph-scroll")
+
+    expect(within(fixedContent).getByTestId("fullscreen-fixed-header")).toBeTruthy()
+    expect(within(fixedContent).getByTestId("fullscreen-original-text-card")).toBeTruthy()
+    expect(within(fixedContent).queryByTestId("fullscreen-graph-viewport")).toBeNull()
+    expect(within(contentRegion).getByTestId("fullscreen-graph-viewport")).toBeTruthy()
+    expect(within(contentRegion).queryByTestId("dependency-fullscreen-close")).toBeNull()
+    expect(contentRegion.props.style).toEqual(expect.objectContaining({ flex: 1, minHeight: 0 }))
+    expect(graphViewport.props.style).toEqual(expect.objectContaining({ flex: 1, minHeight: 0 }))
+    expect(originalTextScroll.props.style).toEqual(
+      expect.objectContaining({ flex: 1, maxHeight: 72, minHeight: 24 }),
+    )
+    expect(verticalGraphScroll.props.horizontal).toBeUndefined()
+    expect(verticalGraphScroll.props.contentInsetAdjustmentBehavior).toBe("never")
+    expect(horizontalGraphScroll.props.horizontal).toBe(true)
+    expect(horizontalGraphScroll.props.contentInsetAdjustmentBehavior).toBe("never")
 
     fireEvent.press(screen.getByTestId("dependency-node-COMP 3000"))
     expect(navigation.replace).toHaveBeenCalledWith("CourseDetails", {
