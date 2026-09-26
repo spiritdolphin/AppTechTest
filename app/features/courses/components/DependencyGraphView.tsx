@@ -28,7 +28,6 @@ function groupLabel(operator: DependencyGroupOperator): string {
 function markerLabel(marker: ResolvedCourseDependency["marker"]): string | undefined {
   if (marker === "cycle") return "Cycle"
   if (marker === "repeated") return "Repeated"
-  if (marker === "more") return "Open to continue"
   return undefined
 }
 

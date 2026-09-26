@@ -39,7 +39,7 @@ export function DependencyExplorerScreen({
     setLoadError(undefined)
 
     repository
-      .resolveDependencyGraph(termCode, courseCode)
+      .resolveDependencyGraph(termCode, courseCode, 1)
       .then((resolvedGraph) => {
         if (active) setGraph(resolvedGraph)
       })

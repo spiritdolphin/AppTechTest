@@ -120,7 +120,7 @@ function renderExplorer(repository: CourseRepository) {
 
 describe("DependencyExplorerScreen", () => {
   test("renders structured dependencies and navigates through an available node", async () => {
-    const originalText = "COMP 3000 AND COMP 3000 AND PHYS 1000"
+    const originalText = "COMP 3000 AND (COMP 3000 OR PHYS 1000)"
     const { navigation, screen } = renderExplorer(
       repositoryWith({
         prerequisitesLoader: () =>
@@ -139,8 +139,12 @@ describe("DependencyExplorerScreen", () => {
 
     expect(await screen.findByText("Original prerequisite text")).toBeTruthy()
     expect(screen.getByText(originalText)).toBeTruthy()
-    expect(screen.getByText("Cycle")).toBeTruthy()
+    expect(screen.getByText("AND")).toBeTruthy()
+    expect(screen.getByText("OR")).toBeTruthy()
     expect(screen.getByText("Repeated")).toBeTruthy()
+    expect(screen.queryByText("REQUIRES")).toBeNull()
+    expect(screen.queryByText("Open to continue")).toBeNull()
+    expect(screen.queryByTestId("dependency-node-COMP 4000")).toBeNull()
 
     const unavailableNode = screen.getByTestId("dependency-node-PHYS 1000")
     expect(unavailableNode.props.accessibilityState).toEqual({ disabled: true })
