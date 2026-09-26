@@ -115,7 +115,7 @@ function renderFullscreen(repository: CourseRepository) {
 }
 
 describe("DependencyExplorerFullscreenScreen", () => {
-  test("loads a deeper graph and shows prerequisite course titles", async () => {
+  test("renders pre-prerequisites beside prerequisites and marks deeper courses", async () => {
     const repository = repositoryWith(() =>
       prerequisites({
         "COMP 4000": {
@@ -139,9 +139,34 @@ describe("DependencyExplorerFullscreenScreen", () => {
       "COMP 3000 title",
     )
     expect(screen.getByTestId("dependency-title-MATH 2000")).toHaveTextContent("MATH 2000 title")
-    expect(screen.getByTestId("dependency-title-PHYS 1000")).toHaveTextContent("PHYS 1000 title")
-    expect(screen.getAllByText("REQUIRES")).toHaveLength(2)
-    expect(resolveSpy).toHaveBeenCalledWith("2610", "COMP 4000", 3)
+    expect(screen.queryByTestId("dependency-title-PHYS 1000")).toBeNull()
+    expect(screen.queryByText("REQUIRES")).toBeNull()
+    expect(screen.getByTestId("dependency-more-MATH 2000")).toBeTruthy()
+    expect(screen.getByTestId("dependency-node-MATH 2000")).toHaveProp("accessibilityState", {
+      disabled: false,
+    })
+    expect(screen.getByTestId("dependency-node-MATH 2000")).toHaveProp(
+      "accessibilityLabel",
+      "MATH 2000, More prerequisites exist before MATH 2000",
+    )
+    expect(resolveSpy).toHaveBeenCalledWith("2610", "COMP 4000", 2)
+
+    const prerequisiteLabel = screen.getByTestId("prerequisite-column-label")
+    const currentCourseLabel = screen.getByTestId("current-course-column-label")
+    const prerequisiteLayer = screen.getByTestId("dependency-layer-COMP 3000")
+    const prePrerequisiteColumn = screen.getByTestId("pre-prerequisite-column-COMP 3000")
+
+    expect(prerequisiteLabel.props.style).toEqual(
+      expect.objectContaining({ alignItems: "center", flex: 2, minWidth: 0 }),
+    )
+    expect(currentCourseLabel.props.style).toEqual(
+      expect.objectContaining({ alignItems: "center", flex: 1, minWidth: 0 }),
+    )
+    expect(prerequisiteLayer.props.style).toEqual(
+      expect.objectContaining({ alignItems: "flex-start", flexDirection: "row" }),
+    )
+    expect(within(prePrerequisiteColumn).getByTestId("dependency-node-MATH 2000")).toBeTruthy()
+    expect(within(prePrerequisiteColumn).queryByTestId("dependency-node-COMP 3000")).toBeNull()
 
     const fixedContent = screen.getByTestId("fullscreen-fixed-content")
     const contentRegion = screen.getByTestId("fullscreen-content-region")
@@ -183,8 +208,43 @@ describe("DependencyExplorerFullscreenScreen", () => {
     })
     expect(navigation.navigate).not.toHaveBeenCalled()
 
+    fireEvent.press(screen.getByTestId("dependency-node-MATH 2000"))
+    expect(navigation.replace).toHaveBeenLastCalledWith("CourseDetails", {
+      courseCode: "MATH 2000",
+      parentCourseCode: "COMP 4000",
+      termCode: "2610",
+    })
+
     fireEvent.press(screen.getByTestId("dependency-fullscreen-close"))
     expect(navigation.goBack).toHaveBeenCalledTimes(1)
+  })
+
+  test("preserves grouped prerequisite operators in the layered layout", async () => {
+    const repository = repositoryWith(
+      () =>
+        prerequisites({
+          "COMP 4000": {
+            originalText: "(COMP 3000 OR MATH 2000) AND PHYS 1000",
+            referencedCourseCodes: ["COMP 3000", "MATH 2000", "PHYS 1000"],
+          },
+          "COMP 3000": {
+            originalText: "MATH 1000 OR MATH 1001",
+            referencedCourseCodes: ["MATH 1000", "MATH 1001"],
+          },
+        }),
+      ["COMP 4000", "COMP 3000", "MATH 2000", "PHYS 1000", "MATH 1000", "MATH 1001"],
+    )
+    const { screen } = renderFullscreen(repository)
+
+    expect(await screen.findByTestId("dependency-node-COMP 3000")).toBeTruthy()
+    expect(screen.getByTestId("dependency-operator-root-1")).toHaveTextContent("AND")
+    expect(screen.getByTestId("dependency-operator-root-0-1")).toHaveTextContent("OR")
+    expect(screen.getByTestId("pre-prerequisite-operator-root-0-0-pre-1")).toHaveTextContent("OR")
+
+    const compPrePrerequisites = screen.getByTestId("pre-prerequisite-column-COMP 3000")
+    expect(within(compPrePrerequisites).getByTestId("dependency-node-MATH 1000")).toBeTruthy()
+    expect(within(compPrePrerequisites).getByTestId("dependency-node-MATH 1001")).toBeTruthy()
+    expect(screen.queryByText("REQUIRES")).toBeNull()
   })
 
   test("renders loading, error, and unavailable states", async () => {

@@ -70,6 +70,68 @@ interface DependencyItemProps {
   variant: "compact" | "detailed"
 }
 
+interface CourseNodeProps {
+  item: ResolvedCourseDependency
+  onOpenCourse: (courseCode: string) => void
+  termName: string
+  variant: "compact" | "detailed"
+}
+
+function CourseNode({ item, onOpenCourse, termName, variant }: CourseNodeProps) {
+  const { themed } = useAppTheme()
+  const marker = markerLabel(item.marker)
+  const compactTerm = compactTermName(termName)
+  const moreStatus =
+    item.marker === "more" ? `More prerequisites exist before ${item.courseCode}` : undefined
+  const accessibilityStatus = [
+    !item.available ? `Not offered in ${termName}` : undefined,
+    marker,
+    moreStatus,
+  ]
+    .filter(Boolean)
+    .join(", ")
+
+  return (
+    <Pressable
+      accessibilityLabel={`${item.courseCode}${accessibilityStatus ? `, ${accessibilityStatus}` : ""}`}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: !item.available }}
+      disabled={!item.available}
+      onPress={() => onOpenCourse(item.courseCode)}
+      style={({ pressed }) => [
+        themed($courseNode),
+        variant === "detailed" && themed($detailedCourseNode),
+        !item.available && themed($unavailableNode),
+        pressed && $pressed,
+      ]}
+      testID={`dependency-node-${item.courseCode}`}
+    >
+      <Text
+        adjustsFontSizeToFit
+        minimumFontScale={0.9}
+        numberOfLines={1}
+        text={item.courseCode}
+        size="sm"
+        weight="bold"
+        style={themed($courseCode)}
+      />
+      {variant === "detailed" && !!item.title && (
+        <Text
+          text={item.title}
+          size="xxs"
+          numberOfLines={2}
+          style={themed($courseTitle)}
+          testID={`dependency-title-${item.courseCode}`}
+        />
+      )}
+      {!item.available && (
+        <Text text={`Not Offered: ${compactTerm}`} size="xxs" style={themed($unavailableText)} />
+      )}
+      {!!marker && <NodeBadge>{marker}</NodeBadge>}
+    </Pressable>
+  )
+}
+
 function DependencyItem({ item, onOpenCourse, path, termName, variant }: DependencyItemProps) {
   const { themed } = useAppTheme()
 
@@ -124,51 +186,9 @@ function DependencyItem({ item, onOpenCourse, path, termName, variant }: Depende
     )
   }
 
-  const marker = markerLabel(item.marker)
-  const compactTerm = compactTermName(termName)
-  const accessibilityStatus = [!item.available ? `Not offered in ${termName}` : undefined, marker]
-    .filter(Boolean)
-    .join(", ")
-
   return (
     <View style={$courseBranch}>
-      <Pressable
-        accessibilityLabel={`${item.courseCode}${accessibilityStatus ? `, ${accessibilityStatus}` : ""}`}
-        accessibilityRole="button"
-        accessibilityState={{ disabled: !item.available }}
-        disabled={!item.available}
-        onPress={() => onOpenCourse(item.courseCode)}
-        style={({ pressed }) => [
-          themed($courseNode),
-          variant === "detailed" && themed($detailedCourseNode),
-          !item.available && themed($unavailableNode),
-          pressed && $pressed,
-        ]}
-        testID={`dependency-node-${item.courseCode}`}
-      >
-        <Text
-          adjustsFontSizeToFit
-          minimumFontScale={0.9}
-          numberOfLines={1}
-          text={item.courseCode}
-          size="sm"
-          weight="bold"
-          style={themed($courseCode)}
-        />
-        {variant === "detailed" && !!item.title && (
-          <Text
-            text={item.title}
-            size="xxs"
-            numberOfLines={2}
-            style={themed($courseTitle)}
-            testID={`dependency-title-${item.courseCode}`}
-          />
-        )}
-        {!item.available && (
-          <Text text={`Not Offered: ${compactTerm}`} size="xxs" style={themed($unavailableText)} />
-        )}
-        {!!marker && <NodeBadge>{marker}</NodeBadge>}
-      </Pressable>
+      <CourseNode item={item} onOpenCourse={onOpenCourse} termName={termName} variant={variant} />
 
       {!!item.prerequisites && (
         <View style={themed($nestedRequirements)}>
@@ -186,6 +206,200 @@ function DependencyItem({ item, onOpenCourse, path, termName, variant }: Depende
   )
 }
 
+interface DetailedItemProps {
+  item: ResolvedDependencyItem
+  onOpenCourse: (courseCode: string) => void
+  path: string
+  termName: string
+}
+
+function DetailedPrePrerequisiteItem({ item, onOpenCourse, path, termName }: DetailedItemProps) {
+  const { themed } = useAppTheme()
+
+  if (item.kind === "group") {
+    const extracted = item.operator === "extracted"
+
+    return (
+      <View
+        accessibilityLabel={`${groupLabel(item.operator)} pre-prerequisite group`}
+        style={themed($groupCard)}
+        testID={`pre-prerequisite-group-${path}`}
+      >
+        {extracted && (
+          <Text
+            text={groupLabel(item.operator)}
+            size="xxs"
+            weight="bold"
+            style={themed($groupLabel)}
+          />
+        )}
+        {item.children.length === 0 ? (
+          <Text
+            text="No course codes could be extracted"
+            size="xs"
+            style={themed($secondaryText)}
+          />
+        ) : (
+          <View style={$groupChildren}>
+            {item.children.map((child, index) => (
+              <Fragment key={`${path}-${index}`}>
+                {index > 0 && !extracted && (
+                  <Text
+                    text={groupLabel(item.operator)}
+                    size="xxs"
+                    weight="bold"
+                    style={themed($groupLabel)}
+                    testID={`pre-prerequisite-operator-${path}-${index}`}
+                  />
+                )}
+                <DetailedPrePrerequisiteItem
+                  item={child}
+                  onOpenCourse={onOpenCourse}
+                  path={`${path}-${index}`}
+                  termName={termName}
+                />
+              </Fragment>
+            ))}
+          </View>
+        )}
+      </View>
+    )
+  }
+
+  return (
+    <View style={$prePrerequisiteNodeRow}>
+      {item.marker === "more" && (
+        <View style={$moreIndicatorRow} testID={`dependency-more-${item.courseCode}`}>
+          <View style={themed($morePill)}>
+            <Text
+              accessibilityElementsHidden
+              importantForAccessibility="no"
+              text={"M\nO\nR\nE"}
+              size="xxs"
+              weight="bold"
+              style={themed($moreLabel)}
+              testID={`dependency-more-label-${item.courseCode}`}
+            />
+          </View>
+          <Text
+            accessibilityElementsHidden
+            importantForAccessibility="no"
+            text="→"
+            size="sm"
+            weight="bold"
+            style={themed($moreArrow)}
+          />
+        </View>
+      )}
+      <View style={$layeredCourseNode}>
+        <CourseNode
+          item={item}
+          onOpenCourse={onOpenCourse}
+          termName={termName}
+          variant="detailed"
+        />
+      </View>
+    </View>
+  )
+}
+
+function DetailedPrerequisiteItem({ item, onOpenCourse, path, termName }: DetailedItemProps) {
+  const { themed } = useAppTheme()
+
+  if (item.kind === "group") {
+    const extracted = item.operator === "extracted"
+
+    return (
+      <View
+        accessibilityLabel={`${groupLabel(item.operator)} prerequisite group`}
+        style={themed($groupCard)}
+        testID={`dependency-group-${path}`}
+      >
+        {extracted && (
+          <Text
+            text={groupLabel(item.operator)}
+            size="xxs"
+            weight="bold"
+            style={themed($groupLabel)}
+          />
+        )}
+        {item.children.length === 0 ? (
+          <Text
+            text="No course codes could be extracted"
+            size="xs"
+            style={themed($secondaryText)}
+          />
+        ) : (
+          <View style={$groupChildren}>
+            {item.children.map((child, index) => (
+              <Fragment key={`${path}-${index}`}>
+                {index > 0 && !extracted && (
+                  <Text
+                    text={groupLabel(item.operator)}
+                    size="xxs"
+                    weight="bold"
+                    style={themed($groupLabel)}
+                    testID={`dependency-operator-${path}-${index}`}
+                  />
+                )}
+                <DetailedPrerequisiteItem
+                  item={child}
+                  onOpenCourse={onOpenCourse}
+                  path={`${path}-${index}`}
+                  termName={termName}
+                />
+              </Fragment>
+            ))}
+          </View>
+        )}
+      </View>
+    )
+  }
+
+  return (
+    <View style={$layeredPrerequisiteRow} testID={`dependency-layer-${item.courseCode}`}>
+      <View style={$layeredColumn} testID={`pre-prerequisite-column-${item.courseCode}`}>
+        {!!item.prerequisites && (
+          <DetailedPrePrerequisiteItem
+            item={item.prerequisites}
+            onOpenCourse={onOpenCourse}
+            path={`${path}-pre`}
+            termName={termName}
+          />
+        )}
+      </View>
+      <View style={$layeredConnectorSlot}>{!!item.prerequisites && <ArrowConnector />}</View>
+      <View style={$layeredColumn}>
+        <CourseNode
+          item={item}
+          onOpenCourse={onOpenCourse}
+          termName={termName}
+          variant="detailed"
+        />
+      </View>
+    </View>
+  )
+}
+
+function EmptyPrerequisites() {
+  const { themed } = useAppTheme()
+
+  return (
+    <View style={themed($emptyNode)}>
+      <Text
+        adjustsFontSizeToFit
+        minimumFontScale={0.9}
+        numberOfLines={1}
+        text="No prerequisites"
+        size="xs"
+        weight="semiBold"
+        style={$centerText}
+        testID="dependency-empty-state-text"
+      />
+    </View>
+  )
+}
+
 export function DependencyGraphView({
   graph,
   onOpenCourse,
@@ -193,11 +407,15 @@ export function DependencyGraphView({
   variant = "compact",
 }: DependencyGraphViewProps) {
   const { themed } = useAppTheme()
+  const detailed = variant === "detailed"
 
   return (
     <View style={themed($graphSurface)} testID="dependency-graph">
       <View style={$columnLabels}>
-        <View style={$columnLabelSlot} testID="prerequisite-column-label">
+        <View
+          style={detailed ? $detailedPrerequisiteLabelSlot : $columnLabelSlot}
+          testID="prerequisite-column-label"
+        >
           <Text text="PREREQUISITES" size="xxs" weight="bold" style={themed($columnLabel)} />
         </View>
         <View style={$columnLabelSpacer} testID="dependency-column-label-spacer" />
@@ -206,28 +424,26 @@ export function DependencyGraphView({
         </View>
       </View>
       <View style={$columns}>
-        <View style={$prerequisiteColumn}>
+        <View style={detailed ? $detailedPrerequisiteColumns : $prerequisiteColumn}>
           {graph.mode === "none" ? (
-            <View style={themed($emptyNode)}>
-              <Text
-                adjustsFontSizeToFit
-                minimumFontScale={0.9}
-                numberOfLines={1}
-                text="No prerequisites"
-                size="xs"
-                weight="semiBold"
-                style={$centerText}
-                testID="dependency-empty-state-text"
-              />
-            </View>
+            <EmptyPrerequisites />
           ) : graph.prerequisites ? (
-            <DependencyItem
-              item={graph.prerequisites}
-              onOpenCourse={onOpenCourse}
-              path="root"
-              termName={termName}
-              variant={variant}
-            />
+            detailed ? (
+              <DetailedPrerequisiteItem
+                item={graph.prerequisites}
+                onOpenCourse={onOpenCourse}
+                path="root"
+                termName={termName}
+              />
+            ) : (
+              <DependencyItem
+                item={graph.prerequisites}
+                onOpenCourse={onOpenCourse}
+                path="root"
+                termName={termName}
+                variant={variant}
+              />
+            )
           ) : (
             <View style={themed($emptyNode)}>
               <Text text="No course codes could be extracted" size="xs" style={$centerText} />
@@ -270,6 +486,12 @@ const $columnLabelSlot: ViewStyle = {
   minWidth: 0,
 }
 
+const $detailedPrerequisiteLabelSlot: ViewStyle = {
+  alignItems: "center",
+  flex: 2,
+  minWidth: 0,
+}
+
 const $columnLabelSpacer: ViewStyle = {
   width: 40,
 }
@@ -287,6 +509,11 @@ const $columns: ViewStyle = {
 
 const $prerequisiteColumn: ViewStyle = {
   flex: 1,
+  minWidth: 0,
+}
+
+const $detailedPrerequisiteColumns: ViewStyle = {
+  flex: 2,
   minWidth: 0,
 }
 
@@ -338,6 +565,60 @@ const $groupChildren: ViewStyle = {
 const $courseBranch: ViewStyle = {
   gap: 6,
 }
+
+const $layeredPrerequisiteRow: ViewStyle = {
+  alignItems: "flex-start",
+  flexDirection: "row",
+}
+
+const $layeredColumn: ViewStyle = {
+  flex: 1,
+  minWidth: 0,
+}
+
+const $layeredConnectorSlot: ViewStyle = {
+  minHeight: 76,
+  width: 40,
+}
+
+const $prePrerequisiteNodeRow: ViewStyle = {
+  alignItems: "center",
+  flexDirection: "row",
+}
+
+const $layeredCourseNode: ViewStyle = {
+  flex: 1,
+  minWidth: 0,
+}
+
+const $moreIndicatorRow: ViewStyle = {
+  alignItems: "center",
+  flexDirection: "row",
+}
+
+const $morePill: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
+  alignItems: "center",
+  backgroundColor: colors.palette.accent100,
+  borderColor: colors.border,
+  borderRadius: 10,
+  borderWidth: 1,
+  justifyContent: "center",
+  minWidth: 24,
+  paddingHorizontal: spacing.xxs,
+  paddingVertical: spacing.xxs,
+})
+
+const $moreLabel: ThemedStyle<TextStyle> = ({ colors }) => ({
+  color: colors.textDim,
+  letterSpacing: 0.5,
+  lineHeight: 12,
+  textAlign: "center",
+})
+
+const $moreArrow: ThemedStyle<TextStyle> = ({ colors, spacing }) => ({
+  color: colors.tint,
+  marginHorizontal: spacing.xxs,
+})
 
 const $courseNode: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
   alignItems: "center",

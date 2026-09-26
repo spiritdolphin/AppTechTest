@@ -13,7 +13,7 @@ import { courseRepository } from "../data/generatedCourseRepository"
 import type { CourseRepository } from "../data/repository"
 import { useDependencyGraph } from "../utils/useDependencyGraph"
 
-const FULLSCREEN_GRAPH_MAX_DEPTH = 3
+const FULLSCREEN_GRAPH_MAX_DEPTH = 2
 
 type DependencyExplorerFullscreenScreenProps =
   AppStackScreenProps<"DependencyExplorerFullscreen"> & {
