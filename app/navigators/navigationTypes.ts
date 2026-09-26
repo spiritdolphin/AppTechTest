@@ -4,7 +4,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack"
 
 export type AppStackParamList = {
   CourseCatalogue: undefined
-  CourseDetails: { courseCode: string; termCode: string }
+  CourseDetails: { courseCode: string; parentCourseCode?: string; termCode: string }
   DependencyExplorerFullscreen: { courseCode: string; termCode: string }
 }
 

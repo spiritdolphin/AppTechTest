@@ -94,7 +94,7 @@ function prerequisites(byCourseCode: PrerequisitesFile["byCourseCode"]): Prerequ
 }
 
 function renderFullscreen(repository: CourseRepository) {
-  const navigation = { goBack: jest.fn(), navigate: jest.fn() }
+  const navigation = { goBack: jest.fn(), navigate: jest.fn(), replace: jest.fn() }
   const screen = render(
     <SafeAreaProvider initialMetrics={initialMetrics}>
       <ThemeProvider>
@@ -144,10 +144,12 @@ describe("DependencyExplorerFullscreenScreen", () => {
     expect(resolveSpy).toHaveBeenCalledWith("2610", "COMP 4000", 3)
 
     fireEvent.press(screen.getByTestId("dependency-node-COMP 3000"))
-    expect(navigation.navigate).toHaveBeenCalledWith("CourseDetails", {
+    expect(navigation.replace).toHaveBeenCalledWith("CourseDetails", {
       courseCode: "COMP 3000",
+      parentCourseCode: "COMP 4000",
       termCode: "2610",
     })
+    expect(navigation.navigate).not.toHaveBeenCalled()
 
     fireEvent.press(screen.getByTestId("dependency-fullscreen-close"))
     expect(navigation.goBack).toHaveBeenCalledTimes(1)

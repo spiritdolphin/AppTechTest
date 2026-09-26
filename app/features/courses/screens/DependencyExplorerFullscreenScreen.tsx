@@ -102,8 +102,9 @@ export function DependencyExplorerFullscreenScreen({
               <DependencyGraphView
                 graph={graph}
                 onOpenCourse={(prerequisiteCode) =>
-                  navigation.navigate("CourseDetails", {
+                  navigation.replace("CourseDetails", {
                     courseCode: prerequisiteCode,
+                    parentCourseCode: courseCode,
                     termCode,
                   })
                 }

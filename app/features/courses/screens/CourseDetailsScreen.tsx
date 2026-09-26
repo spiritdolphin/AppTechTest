@@ -83,7 +83,7 @@ export function CourseDetailsScreen({
     themed,
     theme: { colors },
   } = useAppTheme()
-  const { courseCode, termCode: initialTermCode } = route.params
+  const { courseCode, parentCourseCode, termCode: initialTermCode } = route.params
   const [selectedTermCode, setSelectedTermCode] = useState(initialTermCode)
   const [detail, setDetail] = useState<CourseDetail>()
   const [availableTermCodes, setAvailableTermCodes] = useState<Set<string>>()
@@ -186,13 +186,13 @@ export function CourseDetailsScreen({
       ScrollViewProps={{ contentInsetAdjustmentBehavior: "automatic" }}
     >
       <Pressable
-        accessibilityLabel="Back to course catalogue"
+        accessibilityLabel={parentCourseCode ? `Back to ${parentCourseCode}` : "Back to catalogue"}
         accessibilityRole="button"
         onPress={navigation.goBack}
         style={({ pressed }) => [themed($backButton), pressed && $pressed]}
       >
         <Text text="‹" size="xl" style={themed($backIcon)} />
-        <Text text="Catalogue" weight="semiBold" />
+        <Text text={parentCourseCode ? "Back" : "Catalogue"} weight="semiBold" />
       </Pressable>
 
       {loadState === "loading" ? (
@@ -351,6 +351,7 @@ export function CourseDetailsScreen({
                   onOpenCourse={(prerequisiteCode) =>
                     navigation.push("CourseDetails", {
                       courseCode: prerequisiteCode,
+                      parentCourseCode: courseCode,
                       termCode: selectedTermCode,
                     })
                   }

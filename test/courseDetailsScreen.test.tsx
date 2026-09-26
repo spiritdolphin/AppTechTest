@@ -179,12 +179,12 @@ function createRepository(
   })
 }
 
-function renderDetails(repository: CourseRepository, termCode = "new") {
+function renderDetails(repository: CourseRepository, termCode = "new", parentCourseCode?: string) {
   const navigation = { goBack: jest.fn(), navigate: jest.fn(), push: jest.fn() }
   const route = {
     key: "course-details-test",
     name: "CourseDetails" as const,
-    params: { courseCode: "COMP 1021", termCode },
+    params: { courseCode: "COMP 1021", parentCourseCode, termCode },
   }
   const screen = render(
     <SafeAreaProvider initialMetrics={initialMetrics}>
@@ -225,6 +225,8 @@ describe("CourseDetailsScreen", () => {
     const { navigation, screen } = renderDetails(repository)
 
     expect(await screen.findByText("Introduction to Computer Science")).toBeTruthy()
+    expect(screen.getByText("Catalogue")).toBeTruthy()
+    expect(screen.getByLabelText("Back to catalogue")).toBeTruthy()
     expect(screen.getByText("CSE | COMP 1021")).toBeTruthy()
     expect(screen.getByText("3 credits")).toBeTruthy()
     expect(screen.getByText("Description for new.")).toBeTruthy()
@@ -260,6 +262,7 @@ describe("CourseDetailsScreen", () => {
     fireEvent.press(screen.getAllByTestId("dependency-node-MATH 1012")[0])
     expect(navigation.push).toHaveBeenCalledWith("CourseDetails", {
       courseCode: "MATH 1012",
+      parentCourseCode: "COMP 1021",
       termCode: "new",
     })
 
@@ -269,6 +272,17 @@ describe("CourseDetailsScreen", () => {
       courseCode: "COMP 1021",
       termCode: "new",
     })
+  })
+
+  test("labels dependency child navigation as Back", async () => {
+    const { navigation, screen } = renderDetails(createRepository(), "new", "COMP 2011")
+
+    await screen.findByText("Introduction to Computer Science")
+    expect(screen.queryByText("Catalogue")).toBeNull()
+    expect(screen.getByText("Back")).toBeTruthy()
+
+    fireEvent.press(screen.getByLabelText("Back to COMP 2011"))
+    expect(navigation.goBack).toHaveBeenCalledTimes(1)
   })
 
   test("omits empty fields while retaining non-empty uncommon catalogue fields", async () => {
