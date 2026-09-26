@@ -170,8 +170,10 @@ describe("DependencyExplorerFullscreenScreen", () => {
 
     const prerequisiteLabel = screen.getByTestId("prerequisite-column-label")
     const currentCourseLabel = screen.getByTestId("current-course-column-label")
-    const prerequisiteLayer = screen.getByTestId("dependency-layer-COMP 3000")
-    const prePrerequisiteColumn = screen.getByTestId("pre-prerequisite-column-COMP 3000")
+    const prerequisiteCanvas = screen.getByTestId("detailed-prerequisite-canvas")
+    const prePrerequisiteColumn = screen.getByTestId("pre-prerequisite-column")
+    const prePrerequisiteBlock = screen.getByTestId("pre-prerequisite-block-root")
+    const prerequisiteTree = screen.getByTestId("detailed-prerequisite-tree")
     const currentCourseNode = screen.getByTestId("dependency-current-course-node")
 
     expect(prerequisiteLabel.props.style).toEqual(
@@ -180,18 +182,20 @@ describe("DependencyExplorerFullscreenScreen", () => {
     expect(currentCourseLabel.props.style).toEqual(
       expect.objectContaining({ alignItems: "center", flex: 1, minWidth: 0 }),
     )
-    expect(prerequisiteLayer.props.style).toEqual(
-      expect.objectContaining({ alignItems: "flex-start", flexDirection: "row" }),
+    expect(prerequisiteCanvas.props.style).toEqual(
+      expect.objectContaining({ minWidth: 0, position: "relative" }),
     )
-    expect(within(prePrerequisiteColumn).getByTestId("dependency-node-MATH 2000")).toBeTruthy()
+    expect(within(prePrerequisiteBlock).getByTestId("dependency-node-MATH 2000")).toBeTruthy()
     expect(within(prePrerequisiteColumn).queryByTestId("dependency-node-COMP 3000")).toBeNull()
+    expect(within(prerequisiteTree).getByTestId("dependency-node-COMP 3000")).toBeTruthy()
+    expect(within(prerequisiteTree).queryByTestId("dependency-node-MATH 2000")).toBeNull()
     expect(currentCourseNode.props.style).toEqual(
       expect.objectContaining({ backgroundColor: colors.palette.neutral200 }),
     )
     const standardArrows = screen
       .UNSAFE_getAllByProps({ testID: "dependency-arrow" })
       .filter((candidate) => candidate.props.style)
-    expect(standardArrows.length).toBeGreaterThanOrEqual(2)
+    expect(standardArrows.length).toBeGreaterThanOrEqual(1)
     standardArrows.forEach((arrow) => expect(arrow.findByProps({ children: "→" })).toBeTruthy())
 
     const fixedContent = screen.getByTestId("fullscreen-fixed-content")
@@ -245,7 +249,7 @@ describe("DependencyExplorerFullscreenScreen", () => {
     expect(navigation.goBack).toHaveBeenCalledTimes(1)
   })
 
-  test("preserves grouped prerequisite operators in the layered layout", async () => {
+  test("keeps the grouped prerequisite tree compact and independent from pre-prerequisites", async () => {
     const repository = repositoryWith(
       () =>
         prerequisites({
@@ -263,57 +267,28 @@ describe("DependencyExplorerFullscreenScreen", () => {
     const { screen } = renderFullscreen(repository)
 
     expect(await screen.findByTestId("dependency-node-COMP 3000")).toBeTruthy()
-    expect(screen.getByTestId("dependency-group-root").props.style).toEqual({
-      gap: 4,
-      paddingVertical: 8,
-    })
-    expect(screen.getByTestId("dependency-group-root").props.style).not.toEqual(
-      expect.objectContaining({ borderWidth: expect.anything() }),
+    expect(screen.getByTestId("dependency-group-root").props.style).toEqual(
+      expect.objectContaining({ borderRadius: 16, borderWidth: 1, gap: 4, padding: 8 }),
     )
-
-    const outerLogicFrame = screen
-      .UNSAFE_getAllByProps({ testID: "dependency-logic-frame-root" })
-      .find((candidate) => Array.isArray(candidate.props.style))
-    const nestedLogicFrame = screen
-      .UNSAFE_getAllByProps({ testID: "dependency-logic-frame-root-0" })
-      .find((candidate) => Array.isArray(candidate.props.style))
-
-    expect(outerLogicFrame?.props.pointerEvents).toBe("none")
-    expect(outerLogicFrame?.props.style).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ borderRadius: 16, borderWidth: 1 }),
-        expect.objectContaining({ left: "50%", marginLeft: 20, right: 0 }),
-      ]),
-    )
-    expect(nestedLogicFrame?.props.style).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ borderRadius: 16, borderWidth: 1 }),
-        expect.objectContaining({ left: "50%", marginLeft: 28, right: 8 }),
-      ]),
+    expect(screen.getByTestId("dependency-group-root-0").props.style).toEqual(
+      expect.objectContaining({ borderRadius: 16, borderWidth: 1, gap: 4, padding: 8 }),
     )
     expect(screen.getByTestId("dependency-operator-root-1")).toHaveTextContent("AND")
     expect(screen.getByTestId("dependency-operator-root-0-1")).toHaveTextContent("OR")
     expect(screen.getByTestId("pre-prerequisite-operator-root-0-0-pre-1")).toHaveTextContent("OR")
 
-    const directOperatorRow = screen.getByTestId("dependency-operator-row-root-1")
-    expect(directOperatorRow.props.style).toEqual(
-      expect.objectContaining({ alignItems: "flex-start", flexDirection: "row" }),
-    )
-    expect(within(directOperatorRow).getByText("AND")).toBeTruthy()
-
-    const compPrePrerequisites = screen.getByTestId("pre-prerequisite-column-COMP 3000")
+    const prePrerequisiteColumn = screen.getByTestId("pre-prerequisite-column")
+    const compPrePrerequisites = screen.getByTestId("pre-prerequisite-block-root-0-0")
+    const prerequisiteTree = screen.getByTestId("detailed-prerequisite-tree")
     const nestedPrerequisite = screen.getByTestId("prerequisite-column-COMP 3000")
     const outerPrerequisite = screen.getByTestId("prerequisite-column-PHYS 1000")
 
     expect(within(compPrePrerequisites).getByTestId("dependency-node-MATH 1000")).toBeTruthy()
     expect(within(compPrePrerequisites).getByTestId("dependency-node-MATH 1001")).toBeTruthy()
-    expect(within(compPrePrerequisites).queryByTestId("dependency-logic-frame-root-0")).toBeNull()
-    expect(nestedPrerequisite.props.style).toEqual(
-      expect.arrayContaining([expect.objectContaining({ paddingHorizontal: 16 })]),
-    )
-    expect(outerPrerequisite.props.style).toEqual(
-      expect.arrayContaining([expect.objectContaining({ paddingHorizontal: 8 })]),
-    )
+    expect(within(prePrerequisiteColumn).queryByTestId("dependency-group-root")).toBeNull()
+    expect(within(prerequisiteTree).queryByTestId("dependency-node-MATH 1000")).toBeNull()
+    expect(nestedPrerequisite.props.style).toEqual(expect.objectContaining({ minWidth: 0 }))
+    expect(outerPrerequisite.props.style).toEqual(expect.objectContaining({ minWidth: 0 }))
     expect(screen.queryByText("REQUIRES")).toBeNull()
   })
 

@@ -1,5 +1,6 @@
-import { Fragment, ReactNode } from "react"
-import { Pressable, TextStyle, View, ViewStyle } from "react-native"
+import { Fragment, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { LayoutChangeEvent, Pressable, TextStyle, View, ViewStyle } from "react-native"
+import Svg, { Path } from "react-native-svg"
 
 import { Text } from "@/components/Text"
 import { useAppTheme } from "@/theme/context"
@@ -11,6 +12,7 @@ import type {
   ResolvedDependencyGraph,
   ResolvedDependencyItem,
 } from "../domain/dependencyGraph"
+import { buildOrthogonalConnectorPath, type ConnectorPoint } from "../utils/dependencyConnectorPath"
 
 interface DependencyGraphViewProps {
   graph: ResolvedDependencyGraph
@@ -216,49 +218,10 @@ function DependencyItem({ item, onOpenCourse, path, termName, variant }: Depende
 }
 
 interface DetailedItemProps {
-  groupDepth?: number
   item: ResolvedDependencyItem
   onOpenCourse: (courseCode: string) => void
   path: string
   termName: string
-}
-
-function DetailedPrerequisiteCell({
-  children,
-  insetDepth = 0,
-  testID,
-}: {
-  children: ReactNode
-  insetDepth?: number
-  testID?: string
-}) {
-  return (
-    <View style={$layeredPrerequisiteRow} testID={testID}>
-      <View style={$layeredColumn} />
-      <View style={$layeredCellSpacer} />
-      <View style={[$layeredColumn, rightColumnInset(insetDepth)]}>{children}</View>
-    </View>
-  )
-}
-
-const LOGIC_GROUP_INSET = 8
-const LAYERED_CONNECTOR_WIDTH = 40
-
-function rightColumnInset(depth: number): ViewStyle | undefined {
-  return depth > 0 ? { paddingHorizontal: depth * LOGIC_GROUP_INSET } : undefined
-}
-
-function logicFramePosition(depth: number): ViewStyle {
-  const inset = depth * LOGIC_GROUP_INSET
-
-  return {
-    bottom: 0,
-    left: "50%",
-    marginLeft: LAYERED_CONNECTOR_WIDTH / 2 + inset,
-    position: "absolute",
-    right: inset,
-    top: 0,
-  }
 }
 
 function DetailedPrePrerequisiteItem({ item, onOpenCourse, path, termName }: DetailedItemProps) {
@@ -346,73 +309,63 @@ function DetailedPrePrerequisiteItem({ item, onOpenCourse, path, termName }: Det
   )
 }
 
-function DetailedPrerequisiteItem({
-  groupDepth = 0,
+interface DetailedTreeItemProps extends DetailedItemProps {
+  onTargetLayout: (path: string) => void
+  setTargetRef: (path: string, node: View | null) => void
+}
+
+function DetailedPrerequisiteTreeItem({
   item,
   onOpenCourse,
+  onTargetLayout,
   path,
+  setTargetRef,
   termName,
-}: DetailedItemProps) {
+}: DetailedTreeItemProps) {
   const { themed } = useAppTheme()
 
   if (item.kind === "group") {
     const extracted = item.operator === "extracted"
-    const contentDepth = groupDepth + 1
 
     return (
       <View
         accessibilityLabel={`${groupLabel(item.operator)} prerequisite group`}
-        style={$detailedPrerequisiteGroup}
+        style={themed($logicTreeGroup)}
         testID={`dependency-group-${path}`}
       >
-        <View
-          accessibilityElementsHidden
-          importantForAccessibility="no"
-          pointerEvents="none"
-          style={[themed($logicGroupFrame), logicFramePosition(groupDepth)]}
-          testID={`dependency-logic-frame-${path}`}
-        />
         {extracted && (
-          <DetailedPrerequisiteCell insetDepth={contentDepth}>
-            <Text
-              text={groupLabel(item.operator)}
-              size="xxs"
-              weight="bold"
-              style={themed($groupLabel)}
-            />
-          </DetailedPrerequisiteCell>
+          <Text
+            text={groupLabel(item.operator)}
+            size="xxs"
+            weight="bold"
+            style={themed($groupLabel)}
+          />
         )}
         {item.children.length === 0 ? (
-          <DetailedPrerequisiteCell insetDepth={contentDepth}>
-            <Text
-              text="No course codes could be extracted"
-              size="xs"
-              style={themed($secondaryText)}
-            />
-          </DetailedPrerequisiteCell>
+          <Text
+            text="No course codes could be extracted"
+            size="xs"
+            style={themed($secondaryText)}
+          />
         ) : (
           <View style={$groupChildren}>
             {item.children.map((child, index) => (
               <Fragment key={`${path}-${index}`}>
                 {index > 0 && !extracted && (
-                  <DetailedPrerequisiteCell
-                    insetDepth={contentDepth}
-                    testID={`dependency-operator-row-${path}-${index}`}
-                  >
-                    <Text
-                      text={groupLabel(item.operator)}
-                      size="xxs"
-                      weight="bold"
-                      style={themed($groupLabel)}
-                      testID={`dependency-operator-${path}-${index}`}
-                    />
-                  </DetailedPrerequisiteCell>
+                  <Text
+                    text={groupLabel(item.operator)}
+                    size="xxs"
+                    weight="bold"
+                    style={themed($groupLabel)}
+                    testID={`dependency-operator-${path}-${index}`}
+                  />
                 )}
-                <DetailedPrerequisiteItem
-                  groupDepth={contentDepth}
+                <DetailedPrerequisiteTreeItem
                   item={child}
                   onOpenCourse={onOpenCourse}
+                  onTargetLayout={onTargetLayout}
                   path={`${path}-${index}`}
+                  setTargetRef={setTargetRef}
                   termName={termName}
                 />
               </Fragment>
@@ -424,29 +377,212 @@ function DetailedPrerequisiteItem({
   }
 
   return (
-    <View style={$layeredPrerequisiteRow} testID={`dependency-layer-${item.courseCode}`}>
-      <View style={$layeredColumn} testID={`pre-prerequisite-column-${item.courseCode}`}>
-        {!!item.prerequisites && (
-          <DetailedPrePrerequisiteItem
-            item={item.prerequisites}
+    <View
+      collapsable={false}
+      onLayout={() => onTargetLayout(path)}
+      ref={(node) => setTargetRef(path, node)}
+      style={$logicTreeCourse}
+      testID={`prerequisite-column-${item.courseCode}`}
+    >
+      <CourseNode item={item} onOpenCourse={onOpenCourse} termName={termName} variant="detailed" />
+    </View>
+  )
+}
+
+interface DetailedCourseEntry {
+  item: ResolvedCourseDependency
+  path: string
+}
+
+function collectDetailedCourseEntries(
+  item: ResolvedDependencyItem,
+  path = "root",
+): DetailedCourseEntry[] {
+  if (item.kind === "course") return [{ item, path }]
+  return item.children.flatMap((child, index) =>
+    collectDetailedCourseEntries(child, `${path}-${index}`),
+  )
+}
+
+interface ConnectorAnchors {
+  source?: ConnectorPoint
+  target?: ConnectorPoint
+}
+
+interface DetailedPrerequisiteGraphProps {
+  item: ResolvedDependencyItem
+  onOpenCourse: (courseCode: string) => void
+  termName: string
+}
+
+function DetailedPrerequisiteGraph({
+  item,
+  onOpenCourse,
+  termName,
+}: DetailedPrerequisiteGraphProps) {
+  const {
+    themed,
+    theme: { colors },
+  } = useAppTheme()
+  const entries = useMemo(() => collectDetailedCourseEntries(item), [item])
+  const canvasRef = useRef<View>(null)
+  const sourceRefs = useRef(new Map<string, View>())
+  const targetRefs = useRef(new Map<string, View>())
+  const [canvasSize, setCanvasSize] = useState({ height: 0, width: 0 })
+  const [anchors, setAnchors] = useState<Record<string, ConnectorAnchors>>({})
+
+  const setAnchor = useCallback(
+    (path: string, kind: keyof ConnectorAnchors, point: ConnectorPoint) => {
+      setAnchors((previous) => {
+        const current = previous[path]?.[kind]
+        if (current && Math.abs(current.x - point.x) < 0.5 && Math.abs(current.y - point.y) < 0.5) {
+          return previous
+        }
+
+        return {
+          ...previous,
+          [path]: { ...previous[path], [kind]: point },
+        }
+      })
+    },
+    [],
+  )
+
+  const measureAnchor = useCallback(
+    (path: string, kind: keyof ConnectorAnchors) => {
+      const canvas = canvasRef.current
+      const node = kind === "source" ? sourceRefs.current.get(path) : targetRefs.current.get(path)
+      if (!canvas || !node) return
+
+      canvas.measureInWindow((canvasX, canvasY) => {
+        node.measureInWindow((x, y, width, height) => {
+          setAnchor(
+            path,
+            kind,
+            kind === "source"
+              ? { x: x - canvasX + width, y: y - canvasY + height / 2 }
+              : { x: x - canvasX, y: y - canvasY + height / 2 },
+          )
+        })
+      })
+    },
+    [setAnchor],
+  )
+
+  const measureAllAnchors = useCallback(() => {
+    entries.forEach(({ item: course, path }) => {
+      measureAnchor(path, "target")
+      if (course.prerequisites) measureAnchor(path, "source")
+    })
+  }, [entries, measureAnchor])
+
+  const handleCanvasLayout = useCallback(
+    ({ nativeEvent: { layout } }: LayoutChangeEvent) => {
+      setCanvasSize({ height: layout.height, width: layout.width })
+      requestAnimationFrame(measureAllAnchors)
+    },
+    [measureAllAnchors],
+  )
+
+  useEffect(() => {
+    setAnchors({})
+    requestAnimationFrame(measureAllAnchors)
+  }, [measureAllAnchors])
+
+  const setSourceRef = useCallback((path: string, node: View | null) => {
+    if (node) sourceRefs.current.set(path, node)
+    else sourceRefs.current.delete(path)
+  }, [])
+
+  const setTargetRef = useCallback((path: string, node: View | null) => {
+    if (node) targetRefs.current.set(path, node)
+    else targetRefs.current.delete(path)
+  }, [])
+
+  return (
+    <View
+      collapsable={false}
+      onLayout={handleCanvasLayout}
+      ref={canvasRef}
+      style={$detailedGraphCanvas}
+      testID="detailed-prerequisite-canvas"
+    >
+      <View style={$independentPrerequisiteColumns}>
+        <View style={themed($independentPrePrerequisiteColumn)} testID="pre-prerequisite-column">
+          {entries.map(({ item: course, path }) =>
+            course.prerequisites ? (
+              <View
+                collapsable={false}
+                key={path}
+                onLayout={() => measureAnchor(path, "source")}
+                ref={(node) => setSourceRef(path, node)}
+                testID={`pre-prerequisite-block-${path}`}
+              >
+                <DetailedPrePrerequisiteItem
+                  item={course.prerequisites}
+                  onOpenCourse={onOpenCourse}
+                  path={`${path}-pre`}
+                  termName={termName}
+                />
+              </View>
+            ) : null,
+          )}
+        </View>
+        <View style={$independentConnectorGutter} />
+        <View style={$independentPrerequisiteTreeColumn} testID="detailed-prerequisite-tree">
+          <DetailedPrerequisiteTreeItem
+            item={item}
             onOpenCourse={onOpenCourse}
-            path={`${path}-pre`}
+            onTargetLayout={(path) => measureAnchor(path, "target")}
+            path="root"
+            setTargetRef={setTargetRef}
             termName={termName}
           />
-        )}
+        </View>
       </View>
-      <View style={$layeredConnectorSlot}>{!!item.prerequisites && <ArrowConnector />}</View>
-      <View
-        style={[$layeredColumn, rightColumnInset(groupDepth)]}
-        testID={`prerequisite-column-${item.courseCode}`}
-      >
-        <CourseNode
-          item={item}
-          onOpenCourse={onOpenCourse}
-          termName={termName}
-          variant="detailed"
-        />
-      </View>
+
+      {canvasSize.width > 0 && canvasSize.height > 0 && (
+        <Svg
+          accessibilityElementsHidden
+          height={canvasSize.height}
+          importantForAccessibility="no"
+          pointerEvents="none"
+          style={$connectorOverlay}
+          testID="dependency-connector-overlay"
+          width={canvasSize.width}
+        >
+          {entries.map(({ item: course, path }) => {
+            const source = anchors[path]?.source
+            const target = anchors[path]?.target
+            if (!course.prerequisites || !source || !target || target.x <= source.x) return null
+
+            const arrowTip = { x: target.x - 2, y: target.y }
+            const arrowSize = 7
+
+            return (
+              <Fragment key={path}>
+                <Path
+                  d={buildOrthogonalConnectorPath(source, arrowTip, { arrowSize })}
+                  fill="none"
+                  stroke={colors.tint}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={3}
+                  testID={`dependency-connector-${path}`}
+                />
+                <Path
+                  d={`M ${arrowTip.x - arrowSize} ${arrowTip.y - 6} L ${arrowTip.x} ${arrowTip.y} L ${arrowTip.x - arrowSize} ${arrowTip.y + 6}`}
+                  fill="none"
+                  stroke={colors.tint}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={3}
+                />
+              </Fragment>
+            )
+          })}
+        </Svg>
+      )}
     </View>
   )
 }
@@ -499,10 +635,9 @@ export function DependencyGraphView({
             <EmptyPrerequisites />
           ) : graph.prerequisites ? (
             detailed ? (
-              <DetailedPrerequisiteItem
+              <DetailedPrerequisiteGraph
                 item={graph.prerequisites}
                 onOpenCourse={onOpenCourse}
-                path="root"
                 termName={termName}
               />
             ) : (
@@ -644,38 +779,50 @@ const $groupChildren: ViewStyle = {
   gap: 4,
 }
 
-const $detailedPrerequisiteGroup: ViewStyle = {
-  gap: 4,
-  paddingVertical: 8,
-}
-
-const $logicGroupFrame: ThemedStyle<ViewStyle> = ({ colors }) => ({
+const $logicTreeGroup: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
   borderColor: colors.border,
   borderRadius: 16,
   borderWidth: 1,
+  gap: 4,
+  padding: spacing.xs,
 })
+
+const $logicTreeCourse: ViewStyle = {
+  minWidth: 0,
+}
 
 const $courseBranch: ViewStyle = {
   gap: 6,
 }
 
-const $layeredPrerequisiteRow: ViewStyle = {
-  alignItems: "flex-start",
+const $detailedGraphCanvas: ViewStyle = {
+  minWidth: 0,
+  position: "relative",
+}
+
+const $independentPrerequisiteColumns: ViewStyle = {
   flexDirection: "row",
 }
 
-const $layeredColumn: ViewStyle = {
+const $independentPrePrerequisiteColumn: ThemedStyle<ViewStyle> = ({ spacing }) => ({
+  flex: 1,
+  gap: spacing.sm,
+  minWidth: 0,
+})
+
+const $independentConnectorGutter: ViewStyle = {
+  width: 40,
+}
+
+const $independentPrerequisiteTreeColumn: ViewStyle = {
   flex: 1,
   minWidth: 0,
 }
 
-const $layeredConnectorSlot: ViewStyle = {
-  minHeight: 76,
-  width: LAYERED_CONNECTOR_WIDTH,
-}
-
-const $layeredCellSpacer: ViewStyle = {
-  width: LAYERED_CONNECTOR_WIDTH,
+const $connectorOverlay: ViewStyle = {
+  left: 0,
+  position: "absolute",
+  top: 0,
 }
 
 const $prePrerequisiteNodeRow: ViewStyle = {
