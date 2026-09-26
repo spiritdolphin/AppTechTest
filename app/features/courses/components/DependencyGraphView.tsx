@@ -12,7 +12,14 @@ import type {
   ResolvedDependencyGraph,
   ResolvedDependencyItem,
 } from "../domain/dependencyGraph"
-import { buildOrthogonalConnectorPath, type ConnectorPoint } from "../utils/dependencyConnectorPath"
+import {
+  alignedNodeTop,
+  buildOrthogonalConnectorPath,
+  connectorTipBeforeBoundary,
+  type ConnectorPoint,
+} from "../utils/dependencyConnectorPath"
+
+const CONNECTOR_ARROW_SIZE = 7
 
 interface DependencyGraphViewProps {
   graph: ResolvedDependencyGraph
@@ -59,6 +66,38 @@ function ArrowConnector({ compact = false, testID = "dependency-arrow" }: ArrowC
         style={themed($arrowGlyph)}
       />
     </View>
+  )
+}
+
+interface ConnectorPathsProps {
+  color: string
+  source: ConnectorPoint
+  testID: string
+  tip: ConnectorPoint
+}
+
+function ConnectorPaths({ color, source, testID, tip }: ConnectorPathsProps) {
+  return (
+    <Fragment>
+      <Path
+        d={buildOrthogonalConnectorPath(source, tip, { arrowSize: CONNECTOR_ARROW_SIZE })}
+        fill="none"
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={3}
+        testID={`${testID}-path`}
+      />
+      <Path
+        d={`M ${tip.x - CONNECTOR_ARROW_SIZE} ${tip.y - 6} L ${tip.x} ${tip.y} L ${tip.x - CONNECTOR_ARROW_SIZE} ${tip.y + 6}`}
+        fill="none"
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={3}
+        testID={`${testID}-head`}
+      />
+    </Fragment>
   )
 }
 
@@ -308,15 +347,21 @@ function DetailedPrePrerequisiteItem({ item, onOpenCourse, path, termName }: Det
 }
 
 interface DetailedTreeItemProps extends DetailedItemProps {
+  firstCoursePath: string | undefined
+  onFirstCourseLayout: () => void
   onTargetLayout: (path: string) => void
+  setFirstCourseRef: (node: View | null) => void
   setTargetRef: (path: string, node: View | null) => void
 }
 
 function DetailedPrerequisiteTreeItem({
+  firstCoursePath,
   item,
+  onFirstCourseLayout,
   onOpenCourse,
   onTargetLayout,
   path,
+  setFirstCourseRef,
   setTargetRef,
   termName,
 }: DetailedTreeItemProps) {
@@ -359,10 +404,13 @@ function DetailedPrerequisiteTreeItem({
                   />
                 )}
                 <DetailedPrerequisiteTreeItem
+                  firstCoursePath={firstCoursePath}
                   item={child}
+                  onFirstCourseLayout={onFirstCourseLayout}
                   onOpenCourse={onOpenCourse}
                   onTargetLayout={onTargetLayout}
                   path={`${path}-${index}`}
+                  setFirstCourseRef={setFirstCourseRef}
                   setTargetRef={setTargetRef}
                   termName={termName}
                 />
@@ -377,9 +425,15 @@ function DetailedPrerequisiteTreeItem({
   return (
     <View
       collapsable={false}
-      onLayout={() => onTargetLayout(path)}
-      ref={(node) => setTargetRef(path, node)}
-      style={$logicTreeCourse}
+      onLayout={() => {
+        onTargetLayout(path)
+        if (path === firstCoursePath) onFirstCourseLayout()
+      }}
+      ref={(node) => {
+        setTargetRef(path, node)
+        if (path === firstCoursePath) setFirstCourseRef(node)
+      }}
+      style={path === "root" ? [themed($logicTreeGroup), $logicTreeCourse] : $logicTreeCourse}
       testID={`prerequisite-column-${item.courseCode}`}
     >
       <CourseNode item={item} onOpenCourse={onOpenCourse} termName={termName} variant="detailed" />
@@ -409,13 +463,17 @@ interface ConnectorAnchors {
 
 interface DetailedPrerequisiteGraphProps {
   item: ResolvedDependencyItem
+  onFirstCourseLayout: () => void
   onOpenCourse: (courseCode: string) => void
+  setFirstCourseRef: (node: View | null) => void
   termName: string
 }
 
 function DetailedPrerequisiteGraph({
   item,
+  onFirstCourseLayout,
   onOpenCourse,
+  setFirstCourseRef,
   termName,
 }: DetailedPrerequisiteGraphProps) {
   const {
@@ -426,6 +484,7 @@ function DetailedPrerequisiteGraph({
   const canvasRef = useRef<View>(null)
   const sourceRefs = useRef(new Map<string, View>())
   const targetRefs = useRef(new Map<string, View>())
+  const targetBoundaryRef = useRef<View>(null)
   const [canvasSize, setCanvasSize] = useState({ height: 0, width: 0 })
   const [anchors, setAnchors] = useState<Record<string, ConnectorAnchors>>({})
 
@@ -454,13 +513,14 @@ function DetailedPrerequisiteGraph({
 
       canvas.measureInWindow((canvasX, canvasY) => {
         node.measureInWindow((x, y, width, height) => {
-          setAnchor(
-            path,
-            kind,
-            kind === "source"
-              ? { x: x - canvasX + width, y: y - canvasY + height / 2 }
-              : { x: x - canvasX, y: y - canvasY + height / 2 },
-          )
+          const centerY = y - canvasY + height / 2
+          if (kind === "source") {
+            setAnchor(path, kind, { x: x - canvasX + width, y: centerY })
+          } else {
+            targetBoundaryRef.current?.measureInWindow((boundaryX) => {
+              setAnchor(path, kind, { x: boundaryX - canvasX, y: centerY })
+            })
+          }
         })
       })
     },
@@ -527,12 +587,21 @@ function DetailedPrerequisiteGraph({
           )}
         </View>
         <View style={$independentConnectorGutter} />
-        <View style={$independentPrerequisiteTreeColumn} testID="detailed-prerequisite-tree">
+        <View
+          collapsable={false}
+          onLayout={() => requestAnimationFrame(measureAllAnchors)}
+          ref={targetBoundaryRef}
+          style={$independentPrerequisiteTreeColumn}
+          testID="detailed-prerequisite-tree"
+        >
           <DetailedPrerequisiteTreeItem
+            firstCoursePath={entries[0]?.path}
             item={item}
+            onFirstCourseLayout={onFirstCourseLayout}
             onOpenCourse={onOpenCourse}
             onTargetLayout={(path) => measureAnchor(path, "target")}
             path="root"
+            setFirstCourseRef={setFirstCourseRef}
             setTargetRef={setTargetRef}
             termName={termName}
           />
@@ -554,33 +623,121 @@ function DetailedPrerequisiteGraph({
             const target = anchors[path]?.target
             if (!course.prerequisites || !source || !target || target.x <= source.x) return null
 
-            const arrowTip = { x: target.x - 10, y: target.y }
-            const arrowSize = 7
+            const arrowTip = connectorTipBeforeBoundary(target.x, target.y)
 
             return (
-              <Fragment key={path}>
-                <Path
-                  d={buildOrthogonalConnectorPath(source, arrowTip, { arrowSize })}
-                  fill="none"
-                  stroke={colors.tint}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={3}
-                  testID={`dependency-connector-${path}`}
-                />
-                <Path
-                  d={`M ${arrowTip.x - arrowSize} ${arrowTip.y - 6} L ${arrowTip.x} ${arrowTip.y} L ${arrowTip.x - arrowSize} ${arrowTip.y + 6}`}
-                  fill="none"
-                  stroke={colors.tint}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={3}
-                />
-              </Fragment>
+              <ConnectorPaths
+                color={colors.tint}
+                key={path}
+                source={source}
+                testID={`dependency-connector-${path}`}
+                tip={arrowTip}
+              />
             )
           })}
         </Svg>
       )}
+    </View>
+  )
+}
+
+interface DetailedGraphColumnsProps {
+  graph: ResolvedDependencyGraph
+  onOpenCourse: (courseCode: string) => void
+  termName: string
+}
+
+function DetailedGraphColumns({ graph, onOpenCourse, termName }: DetailedGraphColumnsProps) {
+  const {
+    themed,
+    theme: { colors },
+  } = useAppTheme()
+  const rowRef = useRef<View>(null)
+  const firstCourseRef = useRef<View>(null)
+  const [firstCourseCenterY, setFirstCourseCenterY] = useState<number | undefined>()
+  const [currentCourseHeight, setCurrentCourseHeight] = useState(76)
+
+  const measureFirstCourse = useCallback(() => {
+    const row = rowRef.current
+    const firstCourse = firstCourseRef.current
+    if (!row || !firstCourse) return
+
+    row.measureInWindow((_, rowY) => {
+      firstCourse.measureInWindow((_, courseY, __, courseHeight) => {
+        const centerY = courseY - rowY + courseHeight / 2
+        setFirstCourseCenterY((previous) =>
+          previous !== undefined && Math.abs(previous - centerY) < 0.5 ? previous : centerY,
+        )
+      })
+    })
+  }, [])
+
+  const setFirstCourseRef = useCallback((node: View | null) => {
+    firstCourseRef.current = node
+  }, [])
+
+  useEffect(() => {
+    setFirstCourseCenterY(undefined)
+    requestAnimationFrame(measureFirstCourse)
+  }, [graph.prerequisites, measureFirstCourse])
+
+  const arrowCenterY = firstCourseCenterY ?? currentCourseHeight / 2
+
+  return (
+    <View
+      collapsable={false}
+      onLayout={() => requestAnimationFrame(measureFirstCourse)}
+      ref={rowRef}
+      style={$columns}
+    >
+      <View style={$detailedPrerequisiteColumns}>
+        {graph.mode === "none" ? (
+          <EmptyPrerequisites />
+        ) : graph.prerequisites ? (
+          <DetailedPrerequisiteGraph
+            item={graph.prerequisites}
+            onFirstCourseLayout={() => requestAnimationFrame(measureFirstCourse)}
+            onOpenCourse={onOpenCourse}
+            setFirstCourseRef={setFirstCourseRef}
+            termName={termName}
+          />
+        ) : (
+          <View style={themed($emptyNode)}>
+            <Text text="No course codes could be extracted" size="xs" style={$centerText} />
+          </View>
+        )}
+      </View>
+      <Svg
+        accessibilityElementsHidden
+        height={20}
+        importantForAccessibility="no"
+        pointerEvents="none"
+        style={{ marginTop: alignedNodeTop(arrowCenterY, 20) }}
+        testID="dependency-main-connector"
+        width={40}
+      >
+        <ConnectorPaths
+          color={colors.tint}
+          source={{ x: 4, y: 10 }}
+          testID="dependency-main-connector"
+          tip={{ x: 30, y: 10 }}
+        />
+      </Svg>
+      <View
+        accessible
+        accessibilityLabel={`${graph.courseCode}, current course, ${graph.title ?? "title unavailable"}`}
+        onLayout={({ nativeEvent: { layout } }) => setCurrentCourseHeight(layout.height)}
+        style={[
+          themed($currentNode),
+          { marginTop: alignedNodeTop(arrowCenterY, currentCourseHeight) },
+        ]}
+        testID="dependency-current-course-node"
+      >
+        <Text text={graph.courseCode} weight="bold" style={themed($currentCode)} />
+        {!!graph.title && (
+          <Text text={graph.title} size="xs" numberOfLines={3} style={$centerText} />
+        )}
+      </View>
     </View>
   )
 }
@@ -627,18 +784,14 @@ export function DependencyGraphView({
           <Text text="CURRENT COURSE" size="xxs" weight="bold" style={themed($columnLabel)} />
         </View>
       </View>
-      <View style={$columns}>
-        <View style={detailed ? $detailedPrerequisiteColumns : $prerequisiteColumn}>
-          {graph.mode === "none" ? (
-            <EmptyPrerequisites />
-          ) : graph.prerequisites ? (
-            detailed ? (
-              <DetailedPrerequisiteGraph
-                item={graph.prerequisites}
-                onOpenCourse={onOpenCourse}
-                termName={termName}
-              />
-            ) : (
+      {detailed ? (
+        <DetailedGraphColumns graph={graph} onOpenCourse={onOpenCourse} termName={termName} />
+      ) : (
+        <View style={$columns}>
+          <View style={$prerequisiteColumn}>
+            {graph.mode === "none" ? (
+              <EmptyPrerequisites />
+            ) : graph.prerequisites ? (
               <DependencyItem
                 item={graph.prerequisites}
                 onOpenCourse={onOpenCourse}
@@ -646,26 +799,26 @@ export function DependencyGraphView({
                 termName={termName}
                 variant={variant}
               />
-            )
-          ) : (
-            <View style={themed($emptyNode)}>
-              <Text text="No course codes could be extracted" size="xs" style={$centerText} />
-            </View>
-          )}
+            ) : (
+              <View style={themed($emptyNode)}>
+                <Text text="No course codes could be extracted" size="xs" style={$centerText} />
+              </View>
+            )}
+          </View>
+          <ArrowConnector />
+          <View
+            accessible
+            accessibilityLabel={`${graph.courseCode}, current course, ${graph.title ?? "title unavailable"}`}
+            style={themed($currentNode)}
+            testID="dependency-current-course-node"
+          >
+            <Text text={graph.courseCode} weight="bold" style={themed($currentCode)} />
+            {!!graph.title && (
+              <Text text={graph.title} size="xs" numberOfLines={3} style={$centerText} />
+            )}
+          </View>
         </View>
-        <ArrowConnector />
-        <View
-          accessible
-          accessibilityLabel={`${graph.courseCode}, current course, ${graph.title ?? "title unavailable"}`}
-          style={themed($currentNode)}
-          testID="dependency-current-course-node"
-        >
-          <Text text={graph.courseCode} weight="bold" style={themed($currentCode)} />
-          {!!graph.title && (
-            <Text text={graph.title} size="xs" numberOfLines={3} style={$centerText} />
-          )}
-        </View>
-      </View>
+      )}
     </View>
   )
 }
@@ -778,6 +931,7 @@ const $groupChildren: ViewStyle = {
 }
 
 const $logicTreeGroup: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
+  backgroundColor: colors.palette.neutral200,
   borderColor: colors.border,
   borderRadius: 16,
   borderWidth: 1,

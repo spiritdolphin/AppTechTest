@@ -3,6 +3,16 @@ export interface ConnectorPoint {
   y: number
 }
 
+export const CONNECTOR_EDGE_GAP = 10
+
+export function connectorTipBeforeBoundary(boundaryX: number, centerY: number): ConnectorPoint {
+  return { x: boundaryX - CONNECTOR_EDGE_GAP, y: centerY }
+}
+
+export function alignedNodeTop(firstCourseCenterY: number, nodeHeight: number): number {
+  return Math.max(0, firstCourseCenterY - nodeHeight / 2)
+}
+
 interface ConnectorPathOptions {
   arrowSize?: number
   radius?: number

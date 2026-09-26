@@ -27,7 +27,7 @@ jest.mock("react-native-svg", () => {
     __esModule: true,
     default: ({ children, ...props }: React.PropsWithChildren) =>
       React.createElement(Native.View, props, children),
-    Path: () => null,
+    Path: (props: Record<string, unknown>) => React.createElement(Native.View, props),
     Polygon: () => null,
   }
 })
@@ -198,14 +198,29 @@ describe("DependencyExplorerFullscreenScreen", () => {
         }),
       ]),
     )
-    expect(currentCourseNode.props.style).toEqual(
-      expect.objectContaining({ backgroundColor: colors.palette.neutral200 }),
+    expect(screen.getByTestId("prerequisite-column-COMP 3000").props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          backgroundColor: colors.palette.neutral200,
+          borderColor: colors.border,
+        }),
+      ]),
     )
-    const standardArrows = screen
-      .UNSAFE_getAllByProps({ testID: "dependency-arrow" })
-      .filter((candidate) => candidate.props.style)
-    expect(standardArrows.length).toBeGreaterThanOrEqual(1)
-    standardArrows.forEach((arrow) => expect(arrow.findByProps({ children: "→" })).toBeTruthy())
+    expect(currentCourseNode.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ backgroundColor: colors.palette.neutral200 }),
+      ]),
+    )
+    expect(screen.queryByTestId("dependency-arrow")).toBeNull()
+    const connectorPath = screen.UNSAFE_getAllByProps({
+      testID: "dependency-main-connector-path",
+    })[0]
+    const connectorHead = screen.UNSAFE_getAllByProps({
+      testID: "dependency-main-connector-head",
+    })[0]
+    expect(connectorPath.props.d).toBe("M 4 10 H 23")
+    expect(connectorHead.props.d).toBe("M 23 4 L 30 10 L 23 16")
+    expect(connectorPath.props.stroke).toBe(colors.tint)
 
     const fixedContent = screen.getByTestId("fullscreen-fixed-content")
     const contentRegion = screen.getByTestId("fullscreen-content-region")
@@ -277,10 +292,22 @@ describe("DependencyExplorerFullscreenScreen", () => {
 
     expect(await screen.findByTestId("dependency-node-COMP 3000")).toBeTruthy()
     expect(screen.getByTestId("dependency-group-root").props.style).toEqual(
-      expect.objectContaining({ borderRadius: 16, borderWidth: 1, gap: 4, padding: 8 }),
+      expect.objectContaining({
+        backgroundColor: colors.palette.neutral200,
+        borderRadius: 16,
+        borderWidth: 1,
+        gap: 4,
+        padding: 8,
+      }),
     )
     expect(screen.getByTestId("dependency-group-root-0").props.style).toEqual(
-      expect.objectContaining({ borderRadius: 16, borderWidth: 1, gap: 4, padding: 8 }),
+      expect.objectContaining({
+        backgroundColor: colors.palette.neutral200,
+        borderRadius: 16,
+        borderWidth: 1,
+        gap: 4,
+        padding: 8,
+      }),
     )
     expect(screen.getByTestId("dependency-operator-root-1")).toHaveTextContent("AND")
     expect(screen.getByTestId("dependency-operator-root-0-1")).toHaveTextContent("OR")
