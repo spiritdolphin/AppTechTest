@@ -163,6 +163,12 @@ describe("DependencyExplorerScreen", () => {
     expect(screen.getByTestId("dependency-column-label-spacer")).toBeTruthy()
     expect(screen.getByTestId("current-course-column-label")).toBeTruthy()
 
+    fireEvent.press(screen.getByTestId("dependency-fullscreen-button"))
+    expect(navigation.navigate).toHaveBeenCalledWith("DependencyExplorerFullscreen", {
+      courseCode: "COMP 4000",
+      termCode: "2610",
+    })
+
     fireEvent.press(screen.getAllByTestId("dependency-node-COMP 3000")[0])
     expect(navigation.navigate).toHaveBeenCalledWith("CourseDetails", {
       courseCode: "COMP 3000",

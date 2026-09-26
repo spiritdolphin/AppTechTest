@@ -6,6 +6,7 @@ export type AppStackParamList = {
   CourseCatalogue: undefined
   CourseDetails: { courseCode: string; termCode: string }
   DependencyExplorer: { courseCode: string; termCode: string }
+  DependencyExplorerFullscreen: { courseCode: string; termCode: string }
 }
 
 export type AppStackScreenProps<T extends keyof AppStackParamList> = NativeStackScreenProps<

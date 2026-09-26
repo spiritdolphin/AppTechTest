@@ -137,6 +137,9 @@ export function DependencyExplorerScreen({
                 termCode,
               })
             }
+            onOpenFullscreen={() =>
+              navigation.navigate("DependencyExplorerFullscreen", { courseCode, termCode })
+            }
             termName={termName}
           />
 

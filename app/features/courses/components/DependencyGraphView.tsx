@@ -16,7 +16,9 @@ import type {
 interface DependencyGraphViewProps {
   graph: ResolvedDependencyGraph
   onOpenCourse: (courseCode: string) => void
+  onOpenFullscreen?: () => void
   termName: string
+  variant?: "compact" | "detailed"
 }
 
 function groupLabel(operator: DependencyGroupOperator): string {
@@ -66,9 +68,10 @@ interface DependencyItemProps {
   onOpenCourse: (courseCode: string) => void
   path: string
   termName: string
+  variant: "compact" | "detailed"
 }
 
-function DependencyItem({ item, onOpenCourse, path, termName }: DependencyItemProps) {
+function DependencyItem({ item, onOpenCourse, path, termName, variant }: DependencyItemProps) {
   const { themed } = useAppTheme()
 
   if (item.kind === "group") {
@@ -112,6 +115,7 @@ function DependencyItem({ item, onOpenCourse, path, termName }: DependencyItemPr
                   onOpenCourse={onOpenCourse}
                   path={`${path}-${index}`}
                   termName={termName}
+                  variant={variant}
                 />
               </Fragment>
             ))}
@@ -137,6 +141,7 @@ function DependencyItem({ item, onOpenCourse, path, termName }: DependencyItemPr
         onPress={() => onOpenCourse(item.courseCode)}
         style={({ pressed }) => [
           themed($courseNode),
+          variant === "detailed" && themed($detailedCourseNode),
           !item.available && themed($unavailableNode),
           pressed && $pressed,
         ]}
@@ -151,6 +156,15 @@ function DependencyItem({ item, onOpenCourse, path, termName }: DependencyItemPr
           weight="bold"
           style={themed($courseCode)}
         />
+        {variant === "detailed" && !!item.title && (
+          <Text
+            text={item.title}
+            size="xxs"
+            numberOfLines={2}
+            style={themed($courseTitle)}
+            testID={`dependency-title-${item.courseCode}`}
+          />
+        )}
         {!item.available && (
           <Text text={`Not Offered: ${compactTerm}`} size="xxs" style={themed($unavailableText)} />
         )}
@@ -165,6 +179,7 @@ function DependencyItem({ item, onOpenCourse, path, termName }: DependencyItemPr
             onOpenCourse={onOpenCourse}
             path={`${path}-requires`}
             termName={termName}
+            variant={variant}
           />
         </View>
       )}
@@ -172,7 +187,13 @@ function DependencyItem({ item, onOpenCourse, path, termName }: DependencyItemPr
   )
 }
 
-export function DependencyGraphView({ graph, onOpenCourse, termName }: DependencyGraphViewProps) {
+export function DependencyGraphView({
+  graph,
+  onOpenCourse,
+  onOpenFullscreen,
+  termName,
+  variant = "compact",
+}: DependencyGraphViewProps) {
   const { themed } = useAppTheme()
 
   return (
@@ -207,6 +228,7 @@ export function DependencyGraphView({ graph, onOpenCourse, termName }: Dependenc
               onOpenCourse={onOpenCourse}
               path="root"
               termName={termName}
+              variant={variant}
             />
           ) : (
             <View style={themed($emptyNode)}>
@@ -226,6 +248,18 @@ export function DependencyGraphView({ graph, onOpenCourse, termName }: Dependenc
           )}
         </View>
       </View>
+      {!!onOpenFullscreen && (
+        <Pressable
+          accessibilityLabel="Open dependency graph fullscreen"
+          accessibilityRole="button"
+          onPress={onOpenFullscreen}
+          style={({ pressed }) => [themed($fullscreenButton), pressed && $pressed]}
+          testID="dependency-fullscreen-button"
+        >
+          <Text text="⛶" size="sm" accessibilityElementsHidden importantForAccessibility="no" />
+          <Text text="Fullscreen" size="xs" weight="semiBold" />
+        </Pressable>
+      )}
     </View>
   )
 }
@@ -331,6 +365,12 @@ const $courseNode: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
   padding: spacing.xs,
 })
 
+const $detailedCourseNode: ThemedStyle<ViewStyle> = ({ spacing }) => ({
+  minHeight: 76,
+  minWidth: 144,
+  paddingHorizontal: spacing.sm,
+})
+
 const $unavailableNode: ThemedStyle<ViewStyle> = ({ colors }) => ({
   backgroundColor: colors.palette.neutral200,
   borderStyle: "dashed",
@@ -339,6 +379,11 @@ const $unavailableNode: ThemedStyle<ViewStyle> = ({ colors }) => ({
 
 const $courseCode: ThemedStyle<TextStyle> = ({ colors }) => ({
   color: colors.tint,
+  textAlign: "center",
+})
+
+const $courseTitle: ThemedStyle<TextStyle> = ({ colors }) => ({
+  color: colors.text,
   textAlign: "center",
 })
 
@@ -389,3 +434,16 @@ const $centerText: TextStyle = {
 const $pressed: ViewStyle = {
   opacity: 0.72,
 }
+
+const $fullscreenButton: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
+  alignItems: "center",
+  alignSelf: "flex-end",
+  borderColor: colors.border,
+  borderRadius: 18,
+  borderWidth: 1,
+  flexDirection: "row",
+  gap: spacing.xs,
+  justifyContent: "center",
+  minHeight: 44,
+  paddingHorizontal: spacing.md,
+})
