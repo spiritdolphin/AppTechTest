@@ -156,7 +156,12 @@ describe("DependencyExplorerScreen", () => {
 
     const unavailableNode = screen.getByTestId("dependency-node-PHYS 1000")
     expect(unavailableNode.props.accessibilityState).toEqual({ disabled: true })
-    expect(screen.getByText("Not offered in 2026-27 Fall")).toBeTruthy()
+    expect(screen.getByText("Not Offered: 26-27 Fall")).toBeTruthy()
+    expect(unavailableNode.props.accessibilityLabel).toContain("Not offered in 2026-27 Fall")
+    expect(screen.getByTestId("dependency-visualizer-label")).toBeTruthy()
+    expect(screen.getByTestId("prerequisite-column-label")).toBeTruthy()
+    expect(screen.getByTestId("dependency-column-label-spacer")).toBeTruthy()
+    expect(screen.getByTestId("current-course-column-label")).toBeTruthy()
 
     fireEvent.press(screen.getAllByTestId("dependency-node-COMP 3000")[0])
     expect(navigation.navigate).toHaveBeenCalledWith("CourseDetails", {

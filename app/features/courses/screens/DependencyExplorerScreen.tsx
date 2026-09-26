@@ -120,6 +120,15 @@ export function DependencyExplorerScreen({
             </View>
           )}
 
+          <Text
+            accessibilityRole="header"
+            text="VISUALIZER"
+            size="xs"
+            weight="semiBold"
+            style={themed($visualizerLabel)}
+            testID="dependency-visualizer-label"
+          />
+
           <DependencyGraphView
             graph={graph}
             onOpenCourse={(prerequisiteCode) =>
@@ -181,6 +190,11 @@ const $notice: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
   borderRadius: 16,
   gap: spacing.xxs,
   padding: spacing.md,
+})
+
+const $visualizerLabel: ThemedStyle<TextStyle> = ({ colors }) => ({
+  color: colors.tint,
+  letterSpacing: 1.1,
 })
 
 const $sourceCard: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({

@@ -31,6 +31,10 @@ function markerLabel(marker: ResolvedCourseDependency["marker"]): string | undef
   return undefined
 }
 
+function compactTermName(termName: string): string {
+  return termName.replace(/^20(?=\d{2}-\d{2}\b)/, "")
+}
+
 function ArrowConnector() {
   const {
     theme: { colors },
@@ -118,6 +122,7 @@ function DependencyItem({ item, onOpenCourse, path, termName }: DependencyItemPr
   }
 
   const marker = markerLabel(item.marker)
+  const compactTerm = compactTermName(termName)
   const accessibilityStatus = [!item.available ? `Not offered in ${termName}` : undefined, marker]
     .filter(Boolean)
     .join(", ")
@@ -147,7 +152,7 @@ function DependencyItem({ item, onOpenCourse, path, termName }: DependencyItemPr
           style={themed($courseCode)}
         />
         {!item.available && (
-          <Text text={`Not offered in ${termName}`} size="xxs" style={themed($unavailableText)} />
+          <Text text={`Not Offered: ${compactTerm}`} size="xxs" style={themed($unavailableText)} />
         )}
         {!!marker && <NodeBadge>{marker}</NodeBadge>}
       </Pressable>
@@ -173,8 +178,13 @@ export function DependencyGraphView({ graph, onOpenCourse, termName }: Dependenc
   return (
     <View style={themed($graphSurface)} testID="dependency-graph">
       <View style={$columnLabels}>
-        <Text text="PREREQUISITES" size="xxs" weight="bold" style={themed($columnLabel)} />
-        <Text text="CURRENT COURSE" size="xxs" weight="bold" style={themed($columnLabel)} />
+        <View style={$columnLabelSlot} testID="prerequisite-column-label">
+          <Text text="PREREQUISITES" size="xxs" weight="bold" style={themed($columnLabel)} />
+        </View>
+        <View style={$columnLabelSpacer} testID="dependency-column-label-spacer" />
+        <View style={$columnLabelSlot} testID="current-course-column-label">
+          <Text text="CURRENT COURSE" size="xxs" weight="bold" style={themed($columnLabel)} />
+        </View>
       </View>
       <View style={$columns}>
         <View style={$prerequisiteColumn}>
@@ -230,13 +240,22 @@ const $graphSurface: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
 })
 
 const $columnLabels: ViewStyle = {
+  alignItems: "center",
   flexDirection: "row",
-  justifyContent: "space-between",
+}
+
+const $columnLabelSlot: ViewStyle = {
+  alignItems: "center",
+  flex: 1,
+  minWidth: 0,
+}
+
+const $columnLabelSpacer: ViewStyle = {
+  width: 40,
 }
 
 const $columnLabel: ThemedStyle<TextStyle> = ({ colors }) => ({
   color: colors.textDim,
-  flex: 1,
   letterSpacing: 0.8,
   textAlign: "center",
 })
@@ -301,6 +320,7 @@ const $courseBranch: ViewStyle = {
 }
 
 const $courseNode: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
+  alignItems: "center",
   backgroundColor: colors.palette.neutral100,
   borderColor: colors.border,
   borderRadius: 14,
@@ -319,10 +339,12 @@ const $unavailableNode: ThemedStyle<ViewStyle> = ({ colors }) => ({
 
 const $courseCode: ThemedStyle<TextStyle> = ({ colors }) => ({
   color: colors.tint,
+  textAlign: "center",
 })
 
 const $unavailableText: ThemedStyle<TextStyle> = ({ colors }) => ({
   color: colors.error,
+  textAlign: "center",
 })
 
 const $nodeBadge: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
