@@ -1,6 +1,5 @@
 import { Fragment, ReactNode } from "react"
 import { Pressable, TextStyle, View, ViewStyle } from "react-native"
-import Svg, { Path, Polygon } from "react-native-svg"
 
 import { Text } from "@/components/Text"
 import { useAppTheme } from "@/theme/context"
@@ -36,17 +35,27 @@ function compactTermName(termName: string): string {
   return termName.replace(/^20(?=\d{2}-\d{2}\b)/, "")
 }
 
-function ArrowConnector() {
-  const {
-    theme: { colors },
-  } = useAppTheme()
+interface ArrowConnectorProps {
+  compact?: boolean
+  testID?: string
+}
+
+function ArrowConnector({ compact = false, testID = "dependency-arrow" }: ArrowConnectorProps) {
+  const { themed } = useAppTheme()
 
   return (
-    <View accessibilityElementsHidden importantForAccessibility="no" style={$arrowContainer}>
-      <Svg height={52} width={40}>
-        <Path d="M2 26 H31" fill="none" stroke={colors.tint} strokeWidth={3} />
-        <Polygon fill={colors.tint} points="29,18 39,26 29,34" />
-      </Svg>
+    <View
+      accessibilityElementsHidden
+      importantForAccessibility="no"
+      style={compact ? $compactArrowContainer : $arrowContainer}
+      testID={testID}
+    >
+      <Text
+        text={compact ? "›" : "→"}
+        size={compact ? "md" : "xl"}
+        weight="bold"
+        style={themed($arrowGlyph)}
+      />
     </View>
   )
 }
@@ -282,23 +291,18 @@ function DetailedPrePrerequisiteItem({ item, onOpenCourse, path, termName }: Det
         <View style={$moreIndicatorRow} testID={`dependency-more-${item.courseCode}`}>
           <View style={themed($morePill)}>
             <Text
+              adjustsFontSizeToFit
               accessibilityElementsHidden
               importantForAccessibility="no"
-              text={"M\nO\nR\nE"}
+              numberOfLines={1}
+              text="MORE"
               size="xxs"
               weight="bold"
               style={themed($moreLabel)}
               testID={`dependency-more-label-${item.courseCode}`}
             />
           </View>
-          <Text
-            accessibilityElementsHidden
-            importantForAccessibility="no"
-            text="→"
-            size="sm"
-            weight="bold"
-            style={themed($moreArrow)}
-          />
+          <ArrowConnector compact testID={`dependency-more-arrow-${item.courseCode}`} />
         </View>
       )}
       <View style={$layeredCourseNode}>
@@ -471,6 +475,7 @@ export function DependencyGraphView({
           accessible
           accessibilityLabel={`${graph.courseCode}, current course, ${graph.title ?? "title unavailable"}`}
           style={themed($currentNode)}
+          testID="dependency-current-course-node"
         >
           <Text text={graph.courseCode} weight="bold" style={themed($currentCode)} />
           {!!graph.title && (
@@ -540,9 +545,20 @@ const $arrowContainer: ViewStyle = {
   width: 40,
 }
 
+const $compactArrowContainer: ViewStyle = {
+  alignItems: "center",
+  justifyContent: "center",
+  width: 14,
+}
+
+const $arrowGlyph: ThemedStyle<TextStyle> = ({ colors }) => ({
+  color: colors.tint,
+  textAlign: "center",
+})
+
 const $currentNode: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
   alignItems: "center",
-  backgroundColor: colors.palette.secondary100,
+  backgroundColor: colors.palette.neutral200,
   borderColor: colors.tint,
   borderRadius: 18,
   borderWidth: 2,
@@ -616,28 +632,23 @@ const $moreIndicatorRow: ViewStyle = {
   flexDirection: "row",
 }
 
-const $morePill: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
+const $morePill: ThemedStyle<ViewStyle> = ({ colors }) => ({
   alignItems: "center",
   backgroundColor: colors.palette.accent100,
   borderColor: colors.border,
   borderRadius: 10,
   borderWidth: 1,
+  height: 64,
   justifyContent: "center",
-  minWidth: 24,
-  paddingHorizontal: spacing.xxs,
-  paddingVertical: spacing.xxs,
+  width: 24,
 })
 
 const $moreLabel: ThemedStyle<TextStyle> = ({ colors }) => ({
   color: colors.textDim,
   letterSpacing: 0.5,
-  lineHeight: 12,
   textAlign: "center",
-})
-
-const $moreArrow: ThemedStyle<TextStyle> = ({ colors, spacing }) => ({
-  color: colors.tint,
-  marginHorizontal: spacing.xxs,
+  transform: [{ rotate: "90deg" }],
+  width: 48,
 })
 
 const $courseNode: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({

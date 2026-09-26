@@ -10,6 +10,7 @@ import type {
   SemestersFile,
 } from "../app/features/courses/domain/types"
 import { DependencyExplorerFullscreenScreen } from "../app/features/courses/screens/DependencyExplorerFullscreenScreen"
+import { colors } from "../app/theme/colors"
 import { ThemeProvider } from "../app/theme/context"
 
 jest.mock("@react-navigation/native", () => {
@@ -142,6 +143,22 @@ describe("DependencyExplorerFullscreenScreen", () => {
     expect(screen.queryByTestId("dependency-title-PHYS 1000")).toBeNull()
     expect(screen.queryByText("REQUIRES")).toBeNull()
     expect(screen.getByTestId("dependency-more-MATH 2000")).toBeTruthy()
+    const moreIndicator = screen.getByTestId("dependency-more-MATH 2000")
+    const moreLabel = within(moreIndicator).UNSAFE_getByProps({
+      testID: "dependency-more-label-MATH 2000",
+    })
+    const moreArrow = within(moreIndicator)
+      .UNSAFE_getAllByProps({ testID: "dependency-more-arrow-MATH 2000" })
+      .find((candidate) => candidate.props.style)
+
+    expect(moreLabel.props.text).toBe("MORE")
+    expect(moreLabel.props.style).toEqual(
+      expect.objectContaining({ transform: [{ rotate: "90deg" }], width: 48 }),
+    )
+    expect(moreArrow?.props.style).toEqual(
+      expect.objectContaining({ alignItems: "center", justifyContent: "center", width: 14 }),
+    )
+    expect(moreArrow?.findByProps({ children: "›" })).toBeTruthy()
     expect(screen.getByTestId("dependency-node-MATH 2000")).toHaveProp("accessibilityState", {
       disabled: false,
     })
@@ -155,6 +172,7 @@ describe("DependencyExplorerFullscreenScreen", () => {
     const currentCourseLabel = screen.getByTestId("current-course-column-label")
     const prerequisiteLayer = screen.getByTestId("dependency-layer-COMP 3000")
     const prePrerequisiteColumn = screen.getByTestId("pre-prerequisite-column-COMP 3000")
+    const currentCourseNode = screen.getByTestId("dependency-current-course-node")
 
     expect(prerequisiteLabel.props.style).toEqual(
       expect.objectContaining({ alignItems: "center", flex: 2, minWidth: 0 }),
@@ -167,6 +185,14 @@ describe("DependencyExplorerFullscreenScreen", () => {
     )
     expect(within(prePrerequisiteColumn).getByTestId("dependency-node-MATH 2000")).toBeTruthy()
     expect(within(prePrerequisiteColumn).queryByTestId("dependency-node-COMP 3000")).toBeNull()
+    expect(currentCourseNode.props.style).toEqual(
+      expect.objectContaining({ backgroundColor: colors.palette.neutral200 }),
+    )
+    const standardArrows = screen
+      .UNSAFE_getAllByProps({ testID: "dependency-arrow" })
+      .filter((candidate) => candidate.props.style)
+    expect(standardArrows.length).toBeGreaterThanOrEqual(2)
+    standardArrows.forEach((arrow) => expect(arrow.findByProps({ children: "→" })).toBeTruthy())
 
     const fixedContent = screen.getByTestId("fullscreen-fixed-content")
     const contentRegion = screen.getByTestId("fullscreen-content-region")
