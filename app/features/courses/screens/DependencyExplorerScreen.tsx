@@ -113,6 +113,13 @@ export function DependencyExplorerScreen({
             </View>
           )}
 
+          {!!graph.originalText && (
+            <View style={themed($sourceCard)} testID="original-text-card">
+              <Text text="Original Text" weight="semiBold" />
+              <Text text={graph.originalText} size="sm" selectable />
+            </View>
+          )}
+
           <DependencyGraphView
             graph={graph}
             onOpenCourse={(prerequisiteCode) =>
@@ -123,13 +130,6 @@ export function DependencyExplorerScreen({
             }
             termName={termName}
           />
-
-          {!!graph.originalText && (
-            <View style={themed($sourceCard)}>
-              <Text text="Original prerequisite text" weight="semiBold" />
-              <Text text={graph.originalText} size="sm" selectable />
-            </View>
-          )}
 
           <Text
             text="Tap an available course to open its details and continue exploring. The graph is limited to this semester and prerequisite relationships only."

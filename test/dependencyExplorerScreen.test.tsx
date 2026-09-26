@@ -137,7 +137,8 @@ describe("DependencyExplorerScreen", () => {
       }),
     )
 
-    expect(await screen.findByText("Original prerequisite text")).toBeTruthy()
+    expect(await screen.findByText("Original Text")).toBeTruthy()
+    expect(screen.queryByText("Original prerequisite text")).toBeNull()
     expect(screen.getByText(originalText)).toBeTruthy()
     expect(screen.getByText("AND")).toBeTruthy()
     expect(screen.getByText("OR")).toBeTruthy()
@@ -145,6 +146,13 @@ describe("DependencyExplorerScreen", () => {
     expect(screen.queryByText("REQUIRES")).toBeNull()
     expect(screen.queryByText("Open to continue")).toBeNull()
     expect(screen.queryByTestId("dependency-node-COMP 4000")).toBeNull()
+    expect(screen.getByText("COMP 4000 title")).toBeTruthy()
+    expect(screen.queryByText("COMP 3000 title")).toBeNull()
+
+    const rendered = JSON.stringify(screen.toJSON())
+    expect(rendered.indexOf("original-text-card")).toBeLessThan(
+      rendered.indexOf("dependency-graph"),
+    )
 
     const unavailableNode = screen.getByTestId("dependency-node-PHYS 1000")
     expect(unavailableNode.props.accessibilityState).toEqual({ disabled: true })
@@ -155,6 +163,31 @@ describe("DependencyExplorerScreen", () => {
       courseCode: "COMP 3000",
       termCode: "2610",
     })
+  })
+
+  test("places a boolean operator between prerequisite course nodes", async () => {
+    const { screen } = renderExplorer(
+      repositoryWith({
+        catalogueFile: catalogue(["COMP 4000", "COMP 3000", "MATH 2000"]),
+        prerequisitesLoader: () =>
+          prerequisites({
+            "COMP 4000": {
+              originalText: "COMP 3000 OR MATH 2000",
+              referencedCourseCodes: ["COMP 3000", "MATH 2000"],
+            },
+          }),
+      }),
+    )
+
+    await screen.findByText("Original Text")
+    const rendered = JSON.stringify(screen.toJSON())
+    const firstNodeIndex = rendered.indexOf("dependency-node-COMP 3000")
+    const operatorIndex = rendered.indexOf("dependency-operator-root-1")
+    const secondNodeIndex = rendered.indexOf("dependency-node-MATH 2000")
+
+    expect(firstNodeIndex).toBeGreaterThan(-1)
+    expect(firstNodeIndex).toBeLessThan(operatorIndex)
+    expect(operatorIndex).toBeLessThan(secondNodeIndex)
   })
 
   test("renders no-prerequisite and extracted-course fallbacks", async () => {

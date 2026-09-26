@@ -1,4 +1,4 @@
-import { ReactNode } from "react"
+import { Fragment, ReactNode } from "react"
 import { Pressable, TextStyle, View, ViewStyle } from "react-native"
 import Svg, { Path, Polygon } from "react-native-svg"
 
@@ -29,23 +29,6 @@ function markerLabel(marker: ResolvedCourseDependency["marker"]): string | undef
   if (marker === "cycle") return "Cycle"
   if (marker === "repeated") return "Repeated"
   return undefined
-}
-
-function BranchConnector({ last }: { last: boolean }) {
-  const {
-    theme: { colors },
-  } = useAppTheme()
-
-  return (
-    <Svg accessibilityElementsHidden height={34} width={20} style={$branchConnector}>
-      <Path
-        d={last ? "M3 0 V17 H20" : "M3 0 V34 M3 17 H20"}
-        fill="none"
-        stroke={colors.border}
-        strokeWidth={2}
-      />
-    </Svg>
-  )
 }
 
 function ArrowConnector() {
@@ -85,17 +68,22 @@ function DependencyItem({ item, onOpenCourse, path, termName }: DependencyItemPr
   const { themed } = useAppTheme()
 
   if (item.kind === "group") {
+    const extracted = item.operator === "extracted"
+
     return (
       <View
         accessibilityLabel={`${groupLabel(item.operator)} prerequisite group`}
         style={themed($groupCard)}
+        testID={`dependency-group-${path}`}
       >
-        <Text
-          text={groupLabel(item.operator)}
-          size="xxs"
-          weight="bold"
-          style={themed($groupLabel)}
-        />
+        {extracted && (
+          <Text
+            text={groupLabel(item.operator)}
+            size="xxs"
+            weight="bold"
+            style={themed($groupLabel)}
+          />
+        )}
         {item.children.length === 0 ? (
           <Text
             text="No course codes could be extracted"
@@ -103,19 +91,25 @@ function DependencyItem({ item, onOpenCourse, path, termName }: DependencyItemPr
             style={themed($secondaryText)}
           />
         ) : (
-          <View>
+          <View style={$groupChildren}>
             {item.children.map((child, index) => (
-              <View key={`${path}-${index}`} style={$branchRow}>
-                <BranchConnector last={index === item.children.length - 1} />
-                <View style={$branchContent}>
-                  <DependencyItem
-                    item={child}
-                    onOpenCourse={onOpenCourse}
-                    path={`${path}-${index}`}
-                    termName={termName}
+              <Fragment key={`${path}-${index}`}>
+                {index > 0 && !extracted && (
+                  <Text
+                    text={groupLabel(item.operator)}
+                    size="xxs"
+                    weight="bold"
+                    style={themed($groupLabel)}
+                    testID={`dependency-operator-${path}-${index}`}
                   />
-                </View>
-              </View>
+                )}
+                <DependencyItem
+                  item={child}
+                  onOpenCourse={onOpenCourse}
+                  path={`${path}-${index}`}
+                  termName={termName}
+                />
+              </Fragment>
             ))}
           </View>
         )}
@@ -143,8 +137,15 @@ function DependencyItem({ item, onOpenCourse, path, termName }: DependencyItemPr
         ]}
         testID={`dependency-node-${item.courseCode}`}
       >
-        <Text text={item.courseCode} size="sm" weight="bold" style={themed($courseCode)} />
-        {!!item.title && <Text text={item.title} size="xxs" numberOfLines={2} />}
+        <Text
+          adjustsFontSizeToFit
+          minimumFontScale={0.9}
+          numberOfLines={1}
+          text={item.courseCode}
+          size="sm"
+          weight="bold"
+          style={themed($courseCode)}
+        />
         {!item.available && (
           <Text text={`Not offered in ${termName}`} size="xxs" style={themed($unavailableText)} />
         )}
@@ -170,7 +171,7 @@ export function DependencyGraphView({ graph, onOpenCourse, termName }: Dependenc
   const { themed } = useAppTheme()
 
   return (
-    <View style={themed($graphSurface)}>
+    <View style={themed($graphSurface)} testID="dependency-graph">
       <View style={$columnLabels}>
         <Text text="PREREQUISITES" size="xxs" weight="bold" style={themed($columnLabel)} />
         <Text text="CURRENT COURSE" size="xxs" weight="bold" style={themed($columnLabel)} />
@@ -287,22 +288,12 @@ const $groupCard: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
 const $groupLabel: ThemedStyle<TextStyle> = ({ colors, spacing }) => ({
   color: colors.tint,
   letterSpacing: 0.8,
-  marginBottom: spacing.xxs,
+  marginVertical: spacing.xxs,
+  textAlign: "center",
 })
 
-const $branchRow: ViewStyle = {
-  alignItems: "flex-start",
-  flexDirection: "row",
-}
-
-const $branchConnector: ViewStyle = {
-  flexShrink: 0,
-}
-
-const $branchContent: ViewStyle = {
-  flex: 1,
-  minWidth: 0,
-  paddingBottom: 6,
+const $groupChildren: ViewStyle = {
+  gap: 4,
 }
 
 const $courseBranch: ViewStyle = {
