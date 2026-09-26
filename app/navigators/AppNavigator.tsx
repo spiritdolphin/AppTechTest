@@ -31,20 +31,23 @@ function AppStack() {
         contentStyle: { backgroundColor: colors.background },
       }}
     >
-      <Stack.Screen
-        name="CourseCatalogue"
-        component={CourseCatalogueScreen}
-        options={{ orientation: "portrait_up" }}
-      />
-      <Stack.Screen
-        name="CourseDetails"
-        component={CourseDetailsScreen}
-        options={{ orientation: "portrait_up" }}
-      />
+      {/* Expo owns orientation locks; native-stack per-screen orientation overrides them on iOS. */}
+      <Stack.Screen name="CourseCatalogue" component={CourseCatalogueScreen} />
+      <Stack.Screen name="CourseDetails" component={CourseDetailsScreen} />
       <Stack.Screen
         name="DependencyExplorerFullscreen"
         component={DependencyExplorerFullscreenScreen}
-        options={{ orientation: "landscape", presentation: "fullScreenModal" }}
+        options={{ presentation: "fullScreenModal" }}
+        listeners={{
+          transitionEnd: (event) => {
+            if (!event.data.closing) return
+
+            const routeName = navigationRef.isReady()
+              ? navigationRef.getCurrentRoute()?.name
+              : undefined
+            void appOrientationController.lockForRoute(routeName)
+          },
+        }}
       />
     </Stack.Navigator>
   )

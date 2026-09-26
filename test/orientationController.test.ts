@@ -52,6 +52,21 @@ describe("app orientation controller", () => {
     expect(lockOrientation).toHaveBeenNthCalledWith(3, ScreenOrientation.OrientationLock.LANDSCAPE)
   })
 
+  test("restores portrait when returning from the fullscreen visualizer", async () => {
+    const lockOrientation = jest.fn<Promise<void>, [ScreenOrientation.OrientationLock]>()
+    lockOrientation.mockResolvedValue(undefined)
+    const controller = new AppOrientationController(lockOrientation)
+
+    await controller.lockForRoute("DependencyExplorerFullscreen")
+    await controller.lockForRoute("CourseDetails")
+
+    expect(lockOrientation).toHaveBeenNthCalledWith(1, ScreenOrientation.OrientationLock.LANDSCAPE)
+    expect(lockOrientation).toHaveBeenNthCalledWith(
+      2,
+      ScreenOrientation.OrientationLock.PORTRAIT_UP,
+    )
+  })
+
   test("does not crash when the platform rejects an orientation lock", async () => {
     const controller = new AppOrientationController(() =>
       Promise.reject(new Error("Orientation lock unavailable")),
