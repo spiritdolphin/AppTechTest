@@ -1,4 +1,5 @@
 import { ActivityIndicator, Pressable, ScrollView, TextStyle, View, ViewStyle } from "react-native"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { Button } from "@/components/Button"
 import { Screen } from "@/components/Screen"
@@ -26,8 +27,9 @@ export function DependencyExplorerFullscreenScreen({
 }: DependencyExplorerFullscreenScreenProps) {
   const {
     themed,
-    theme: { colors },
+    theme: { colors, spacing },
   } = useAppTheme()
+  const insets = useSafeAreaInsets()
   const { courseCode, termCode } = route.params
   const semester = repository.getSemester(termCode)
   const termName = semester?.termName ?? termCode
@@ -37,12 +39,19 @@ export function DependencyExplorerFullscreenScreen({
     repository,
     termCode,
   })
+  const horizontalInset = Math.max(insets.left, insets.right, spacing.xxl) + spacing.xs
 
   return (
     <Screen
       preset="fixed"
-      safeAreaEdges={["top", "bottom", "left", "right"]}
-      contentContainerStyle={themed($screenContent)}
+      safeAreaEdges={[]}
+      contentContainerStyle={[
+        themed($screenContent),
+        {
+          paddingBottom: Math.max(insets.bottom, spacing.xs),
+          paddingHorizontal: horizontalInset,
+        },
+      ]}
     >
       <View style={themed($fixedContent)} testID="fullscreen-fixed-content">
         <View style={$topBar} testID="fullscreen-fixed-header">
@@ -59,12 +68,13 @@ export function DependencyExplorerFullscreenScreen({
           <Pressable
             accessibilityLabel="Close fullscreen dependency graph"
             accessibilityRole="button"
+            hitSlop={spacing.xxs}
             onPress={navigation.goBack}
             style={({ pressed }) => [themed($closeButton), pressed && $pressed]}
             testID="dependency-fullscreen-close"
           >
-            <Text text="Close" size="xs" weight="semiBold" />
-            <Text text="×" size="lg" accessibilityElementsHidden importantForAccessibility="no" />
+            <Text text="Close" size="xxs" weight="semiBold" />
+            <Text text="×" size="sm" accessibilityElementsHidden importantForAccessibility="no" />
           </Pressable>
         </View>
 
@@ -124,7 +134,7 @@ export function DependencyExplorerFullscreenScreen({
                 showsHorizontalScrollIndicator
                 testID="fullscreen-graph-scroll"
               >
-                <View style={$graphWidth}>
+                <View style={$graphWidth} testID="fullscreen-graph-width">
                   <DependencyGraphView
                     graph={graph}
                     onOpenCourse={(prerequisiteCode) =>
@@ -150,11 +160,9 @@ export function DependencyExplorerFullscreenScreen({
 const $screenContent: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
   backgroundColor: colors.background,
   flex: 1,
-  gap: spacing.sm,
+  gap: spacing.xs,
   justifyContent: "flex-start",
-  paddingBottom: spacing.lg,
-  paddingHorizontal: spacing.lg,
-  paddingTop: spacing.sm,
+  paddingTop: spacing.xxs,
 })
 
 const $topBar: ViewStyle = {
@@ -164,7 +172,7 @@ const $topBar: ViewStyle = {
 }
 
 const $fixedContent: ThemedStyle<ViewStyle> = ({ spacing }) => ({
-  gap: spacing.sm,
+  gap: spacing.xs,
 })
 
 const $headingRow: ThemedStyle<ViewStyle> = ({ spacing }) => ({
@@ -188,23 +196,23 @@ const $secondaryText: ThemedStyle<TextStyle> = ({ colors }) => ({
 const $closeButton: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
   alignItems: "center",
   borderColor: colors.border,
-  borderRadius: 18,
+  borderRadius: 14,
   borderWidth: 1,
   flexDirection: "row",
-  gap: spacing.xs,
+  gap: spacing.xxs,
   justifyContent: "center",
-  minHeight: 44,
-  paddingHorizontal: spacing.md,
+  minHeight: 40,
+  paddingHorizontal: spacing.sm,
 })
 
 const $sourceCard: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
   alignItems: "flex-start",
   backgroundColor: colors.palette.neutral100,
-  borderRadius: 16,
+  borderRadius: 12,
   flexDirection: "row",
-  gap: spacing.sm,
-  paddingHorizontal: spacing.md,
-  paddingVertical: spacing.sm,
+  gap: spacing.xs,
+  paddingHorizontal: spacing.sm,
+  paddingVertical: spacing.xxs,
 })
 
 const $sourceText: TextStyle = {
@@ -213,8 +221,8 @@ const $sourceText: TextStyle = {
 
 const $sourceTextScroll: ViewStyle = {
   flex: 1,
-  maxHeight: 72,
-  minHeight: 24,
+  maxHeight: 48,
+  minHeight: 20,
   minWidth: 0,
 }
 
@@ -247,7 +255,7 @@ const $graphScrollContent: ViewStyle = {
 
 const $graphWidth: ViewStyle = {
   flex: 1,
-  minWidth: 720,
+  minWidth: 640,
 }
 
 const $centerState: ThemedStyle<ViewStyle> = ({ spacing }) => ({

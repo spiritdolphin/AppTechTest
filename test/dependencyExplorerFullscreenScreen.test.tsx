@@ -146,6 +146,7 @@ describe("DependencyExplorerFullscreenScreen", () => {
     const fixedContent = screen.getByTestId("fullscreen-fixed-content")
     const contentRegion = screen.getByTestId("fullscreen-content-region")
     const graphViewport = screen.getByTestId("fullscreen-graph-viewport")
+    const graphWidth = screen.getByTestId("fullscreen-graph-width")
     const originalTextScroll = screen.getByTestId("fullscreen-original-text-scroll")
     const verticalGraphScroll = screen.getByTestId("fullscreen-graph-vertical-scroll")
     const horizontalGraphScroll = screen.getByTestId("fullscreen-graph-scroll")
@@ -157,13 +158,22 @@ describe("DependencyExplorerFullscreenScreen", () => {
     expect(within(contentRegion).queryByTestId("dependency-fullscreen-close")).toBeNull()
     expect(contentRegion.props.style).toEqual(expect.objectContaining({ flex: 1, minHeight: 0 }))
     expect(graphViewport.props.style).toEqual(expect.objectContaining({ flex: 1, minHeight: 0 }))
+    expect(graphWidth.props.style).toEqual(expect.objectContaining({ flex: 1, minWidth: 640 }))
     expect(originalTextScroll.props.style).toEqual(
-      expect.objectContaining({ flex: 1, maxHeight: 72, minHeight: 24 }),
+      expect.objectContaining({ flex: 1, maxHeight: 48, minHeight: 20 }),
     )
     expect(verticalGraphScroll.props.horizontal).toBeUndefined()
     expect(verticalGraphScroll.props.contentInsetAdjustmentBehavior).toBe("never")
     expect(horizontalGraphScroll.props.horizontal).toBe(true)
     expect(horizontalGraphScroll.props.contentInsetAdjustmentBehavior).toBe("never")
+
+    const closeButton = screen.getByTestId("dependency-fullscreen-close")
+    expect(closeButton.props.hitSlop).toBe(4)
+    expect(closeButton.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ borderRadius: 14, minHeight: 40, paddingHorizontal: 12 }),
+      ]),
+    )
 
     fireEvent.press(screen.getByTestId("dependency-node-COMP 3000"))
     expect(navigation.replace).toHaveBeenCalledWith("CourseDetails", {
