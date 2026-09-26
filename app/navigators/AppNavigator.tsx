@@ -11,6 +11,7 @@ import { useAppTheme } from "@/theme/context"
 
 import type { AppStackParamList, NavigationProps } from "./navigationTypes"
 import { navigationRef, useBackButtonHandler } from "./navigationUtilities"
+import { appStackOrientationConfig } from "./orientationConfig"
 
 const exitRoutes = Config.exitRoutes
 const Stack = createNativeStackNavigator<AppStackParamList>()
@@ -27,27 +28,19 @@ function AppStack() {
         headerShown: false,
         navigationBarColor: colors.background,
         contentStyle: { backgroundColor: colors.background },
+        orientation: appStackOrientationConfig.default,
       }}
     >
-      <Stack.Screen
-        name="CourseCatalogue"
-        component={CourseCatalogueScreen}
-        options={{ orientation: "portrait" }}
-      />
-      <Stack.Screen
-        name="CourseDetails"
-        component={CourseDetailsScreen}
-        options={{ orientation: "portrait" }}
-      />
-      <Stack.Screen
-        name="DependencyExplorer"
-        component={DependencyExplorerScreen}
-        options={{ orientation: "portrait" }}
-      />
+      <Stack.Screen name="CourseCatalogue" component={CourseCatalogueScreen} />
+      <Stack.Screen name="CourseDetails" component={CourseDetailsScreen} />
+      <Stack.Screen name="DependencyExplorer" component={DependencyExplorerScreen} />
       <Stack.Screen
         name="DependencyExplorerFullscreen"
         component={DependencyExplorerFullscreenScreen}
-        options={{ orientation: "landscape", presentation: "fullScreenModal" }}
+        options={{
+          orientation: appStackOrientationConfig.overrides.DependencyExplorerFullscreen,
+          presentation: "fullScreenModal",
+        }}
       />
     </Stack.Navigator>
   )
