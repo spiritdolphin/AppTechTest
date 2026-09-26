@@ -82,13 +82,20 @@ interface DependencyItemProps {
 }
 
 interface CourseNodeProps {
+  emphasis?: "default" | "prerequisite"
   item: ResolvedCourseDependency
   onOpenCourse: (courseCode: string) => void
   termName: string
   variant: "compact" | "detailed"
 }
 
-function CourseNode({ item, onOpenCourse, termName, variant }: CourseNodeProps) {
+function CourseNode({
+  emphasis = "default",
+  item,
+  onOpenCourse,
+  termName,
+  variant,
+}: CourseNodeProps) {
   const { themed } = useAppTheme()
   const marker = markerLabel(item.marker)
   const compactTerm = compactTermName(termName)
@@ -112,6 +119,7 @@ function CourseNode({ item, onOpenCourse, termName, variant }: CourseNodeProps) 
       style={({ pressed }) => [
         themed($courseNode),
         variant === "detailed" && themed($detailedCourseNode),
+        emphasis === "prerequisite" && themed($prerequisiteCourseNode),
         !item.available && themed($unavailableNode),
         pressed && $pressed,
       ]}
@@ -283,11 +291,9 @@ function DetailedPrePrerequisiteItem({ item, onOpenCourse, path, termName }: Det
         <View style={$moreIndicatorRow} testID={`dependency-more-${item.courseCode}`}>
           <View style={themed($morePill)}>
             <Text
-              adjustsFontSizeToFit
               accessibilityElementsHidden
               importantForAccessibility="no"
-              numberOfLines={1}
-              text="MORE"
+              text={"M\nO\nR\nE"}
               size="xxs"
               weight="bold"
               style={themed($moreLabel)}
@@ -384,7 +390,13 @@ function DetailedPrerequisiteTreeItem({
       style={$logicTreeCourse}
       testID={`prerequisite-column-${item.courseCode}`}
     >
-      <CourseNode item={item} onOpenCourse={onOpenCourse} termName={termName} variant="detailed" />
+      <CourseNode
+        emphasis="prerequisite"
+        item={item}
+        onOpenCourse={onOpenCourse}
+        termName={termName}
+        variant="detailed"
+      />
     </View>
   )
 }
@@ -556,7 +568,7 @@ function DetailedPrerequisiteGraph({
             const target = anchors[path]?.target
             if (!course.prerequisites || !source || !target || target.x <= source.x) return null
 
-            const arrowTip = { x: target.x - 2, y: target.y }
+            const arrowTip = { x: target.x - 10, y: target.y }
             const arrowSize = 7
 
             return (
@@ -854,9 +866,8 @@ const $morePill: ThemedStyle<ViewStyle> = ({ colors }) => ({
 const $moreLabel: ThemedStyle<TextStyle> = ({ colors }) => ({
   color: colors.textDim,
   letterSpacing: 0.5,
+  lineHeight: 12,
   textAlign: "center",
-  transform: [{ rotate: "90deg" }],
-  width: 48,
 })
 
 const $courseNode: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
@@ -875,6 +886,11 @@ const $detailedCourseNode: ThemedStyle<ViewStyle> = ({ spacing }) => ({
   minHeight: 76,
   minWidth: 144,
   paddingHorizontal: spacing.sm,
+})
+
+const $prerequisiteCourseNode: ThemedStyle<ViewStyle> = ({ colors }) => ({
+  backgroundColor: colors.palette.secondary100,
+  borderColor: colors.palette.secondary300,
 })
 
 const $unavailableNode: ThemedStyle<ViewStyle> = ({ colors }) => ({

@@ -151,10 +151,11 @@ describe("DependencyExplorerFullscreenScreen", () => {
       .UNSAFE_getAllByProps({ testID: "dependency-more-arrow-MATH 2000" })
       .find((candidate) => candidate.props.style)
 
-    expect(moreLabel.props.text).toBe("MORE")
+    expect(moreLabel.props.text).toBe("M\nO\nR\nE")
     expect(moreLabel.props.style).toEqual(
-      expect.objectContaining({ transform: [{ rotate: "90deg" }], width: 48 }),
+      expect.objectContaining({ lineHeight: 12, textAlign: "center" }),
     )
+    expect(moreLabel.props.style.transform).toBeUndefined()
     expect(moreArrow?.props.style).toEqual(
       expect.objectContaining({ alignItems: "center", justifyContent: "center", width: 14 }),
     )
@@ -189,6 +190,19 @@ describe("DependencyExplorerFullscreenScreen", () => {
     expect(within(prePrerequisiteColumn).queryByTestId("dependency-node-COMP 3000")).toBeNull()
     expect(within(prerequisiteTree).getByTestId("dependency-node-COMP 3000")).toBeTruthy()
     expect(within(prerequisiteTree).queryByTestId("dependency-node-MATH 2000")).toBeNull()
+    expect(screen.getByTestId("dependency-node-COMP 3000").props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          backgroundColor: colors.palette.secondary100,
+          borderColor: colors.palette.secondary300,
+        }),
+      ]),
+    )
+    expect(screen.getByTestId("dependency-node-MATH 2000").props.style).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ backgroundColor: colors.palette.secondary100 }),
+      ]),
+    )
     expect(currentCourseNode.props.style).toEqual(
       expect.objectContaining({ backgroundColor: colors.palette.neutral200 }),
     )
