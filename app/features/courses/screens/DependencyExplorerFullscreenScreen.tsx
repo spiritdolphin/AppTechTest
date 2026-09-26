@@ -126,29 +126,20 @@ export function DependencyExplorerFullscreenScreen({
               style={$graphVerticalScroll}
               testID="fullscreen-graph-vertical-scroll"
             >
-              <ScrollView
-                horizontal
-                contentContainerStyle={$graphScrollContent}
-                contentInsetAdjustmentBehavior="never"
-                nestedScrollEnabled
-                showsHorizontalScrollIndicator
-                testID="fullscreen-graph-scroll"
-              >
-                <View style={$graphWidth} testID="fullscreen-graph-width">
-                  <DependencyGraphView
-                    graph={graph}
-                    onOpenCourse={(prerequisiteCode) =>
-                      navigation.replace("CourseDetails", {
-                        courseCode: prerequisiteCode,
-                        parentCourseCode: courseCode,
-                        termCode,
-                      })
-                    }
-                    termName={termName}
-                    variant="detailed"
-                  />
-                </View>
-              </ScrollView>
+              <View style={$graphWidth} testID="fullscreen-graph-width">
+                <DependencyGraphView
+                  graph={graph}
+                  onOpenCourse={(prerequisiteCode) =>
+                    navigation.replace("CourseDetails", {
+                      courseCode: prerequisiteCode,
+                      parentCourseCode: courseCode,
+                      termCode,
+                    })
+                  }
+                  termName={termName}
+                  variant="detailed"
+                />
+              </View>
             </ScrollView>
           </View>
         )}
@@ -249,13 +240,8 @@ const $graphVerticalScrollContent: ViewStyle = {
   flexGrow: 1,
 }
 
-const $graphScrollContent: ViewStyle = {
-  flexGrow: 1,
-}
-
 const $graphWidth: ViewStyle = {
-  flex: 1,
-  minWidth: 640,
+  width: "100%",
 }
 
 const $centerState: ThemedStyle<ViewStyle> = ({ spacing }) => ({

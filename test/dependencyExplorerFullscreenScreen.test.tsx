@@ -169,6 +169,9 @@ describe("DependencyExplorerFullscreenScreen", () => {
     )
     expect(resolveSpy).toHaveBeenCalledWith("2610", "COMP 4000", 2)
 
+    fireEvent(screen.getByTestId("detailed-columns-container"), "layout", {
+      nativeEvent: { layout: { width: 700, height: 300 } },
+    })
     const prerequisiteLabel = screen.getByTestId("prerequisite-column-label")
     const currentCourseLabel = screen.getByTestId("current-course-column-label")
     const prerequisiteCanvas = screen.getByTestId("detailed-prerequisite-canvas")
@@ -177,11 +180,24 @@ describe("DependencyExplorerFullscreenScreen", () => {
     const prerequisiteTree = screen.getByTestId("detailed-prerequisite-tree")
     const currentCourseNode = screen.getByTestId("dependency-current-course-node")
 
+    const columnWidth = (700 - 80) / 3
     expect(prerequisiteLabel.props.style).toEqual(
-      expect.objectContaining({ alignItems: "center", flex: 2, minWidth: 0 }),
+      expect.arrayContaining([
+        expect.objectContaining({ alignItems: "center", minWidth: 0 }),
+        expect.objectContaining({ width: columnWidth * 2 + 40 }),
+      ]),
     )
     expect(currentCourseLabel.props.style).toEqual(
-      expect.objectContaining({ alignItems: "center", flex: 1, minWidth: 0 }),
+      expect.arrayContaining([
+        expect.objectContaining({ alignItems: "center", minWidth: 0 }),
+        expect.objectContaining({ width: columnWidth }),
+      ]),
+    )
+    expect(prePrerequisiteColumn.props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ width: columnWidth })]),
+    )
+    expect(prerequisiteTree.props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ width: columnWidth })]),
     )
     expect(prerequisiteCanvas.props.style).toEqual(
       expect.objectContaining({ minWidth: 0, position: "relative" }),
@@ -209,6 +225,8 @@ describe("DependencyExplorerFullscreenScreen", () => {
     expect(currentCourseNode.props.style).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ backgroundColor: colors.palette.neutral200 }),
+        expect.objectContaining({ flex: 0 }),
+        expect.objectContaining({ width: columnWidth }),
       ]),
     )
     expect(screen.queryByTestId("dependency-arrow")).toBeNull()
@@ -228,7 +246,6 @@ describe("DependencyExplorerFullscreenScreen", () => {
     const graphWidth = screen.getByTestId("fullscreen-graph-width")
     const originalTextScroll = screen.getByTestId("fullscreen-original-text-scroll")
     const verticalGraphScroll = screen.getByTestId("fullscreen-graph-vertical-scroll")
-    const horizontalGraphScroll = screen.getByTestId("fullscreen-graph-scroll")
 
     expect(within(fixedContent).getByTestId("fullscreen-fixed-header")).toBeTruthy()
     expect(within(fixedContent).getByTestId("fullscreen-original-text-card")).toBeTruthy()
@@ -237,14 +254,28 @@ describe("DependencyExplorerFullscreenScreen", () => {
     expect(within(contentRegion).queryByTestId("dependency-fullscreen-close")).toBeNull()
     expect(contentRegion.props.style).toEqual(expect.objectContaining({ flex: 1, minHeight: 0 }))
     expect(graphViewport.props.style).toEqual(expect.objectContaining({ flex: 1, minHeight: 0 }))
-    expect(graphWidth.props.style).toEqual(expect.objectContaining({ flex: 1, minWidth: 640 }))
+    expect(graphWidth.props.style).toEqual(expect.objectContaining({ width: "100%" }))
     expect(originalTextScroll.props.style).toEqual(
       expect.objectContaining({ flex: 1, maxHeight: 48, minHeight: 20 }),
     )
     expect(verticalGraphScroll.props.horizontal).toBeUndefined()
     expect(verticalGraphScroll.props.contentInsetAdjustmentBehavior).toBe("never")
-    expect(horizontalGraphScroll.props.horizontal).toBe(true)
-    expect(horizontalGraphScroll.props.contentInsetAdjustmentBehavior).toBe("never")
+    expect(screen.queryByTestId("fullscreen-graph-scroll")).toBeNull()
+
+    fireEvent(screen.getByTestId("detailed-columns-container"), "layout", {
+      nativeEvent: { layout: { width: 560, height: 300 } },
+    })
+    const narrowColumnWidth = (560 - 80) / 3
+    expect(screen.getByTestId("pre-prerequisite-column").props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ width: narrowColumnWidth })]),
+    )
+    expect(screen.getByTestId("detailed-prerequisite-tree").props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ width: narrowColumnWidth })]),
+    )
+    expect(screen.getByTestId("dependency-current-course-node").props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ width: narrowColumnWidth })]),
+    )
+    expect(narrowColumnWidth * 3 + 80).toBe(560)
 
     const closeButton = screen.getByTestId("dependency-fullscreen-close")
     expect(closeButton.props.hitSlop).toBe(4)
@@ -271,6 +302,65 @@ describe("DependencyExplorerFullscreenScreen", () => {
 
     fireEvent.press(screen.getByTestId("dependency-fullscreen-close"))
     expect(navigation.goBack).toHaveBeenCalledTimes(1)
+  })
+
+  test("uses equal, screen-bounded columns when prerequisites have no earlier courses", async () => {
+    const repository = repositoryWith(() =>
+      prerequisites({
+        "COMP 4000": {
+          originalText: "COMP 3000 OR MATH 2000",
+          referencedCourseCodes: ["COMP 3000", "MATH 2000"],
+        },
+      }),
+    )
+    const { screen } = renderFullscreen(repository)
+
+    expect(await screen.findByTestId("dependency-node-COMP 3000")).toBeTruthy()
+    fireEvent(screen.getByTestId("detailed-columns-container"), "layout", {
+      nativeEvent: { layout: { width: 700, height: 200 } },
+    })
+
+    const columnWidth = (700 - 40) / 2
+    expect(screen.queryByTestId("pre-prerequisite-column")).toBeNull()
+    expect(screen.getByTestId("detailed-prerequisite-columns").props.style).toEqual({
+      width: columnWidth,
+    })
+    expect(screen.getByTestId("detailed-prerequisite-tree").props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ width: columnWidth })]),
+    )
+    expect(screen.getByTestId("dependency-current-course-node").props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ width: columnWidth })]),
+    )
+    expect(screen.getByTestId("prerequisite-column-label").props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ width: columnWidth })]),
+    )
+    expect(screen.getByTestId("current-course-column-label").props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ width: columnWidth })]),
+    )
+    expect(columnWidth * 2 + 40).toBe(700)
+  })
+
+  test("keeps empty prerequisites readable and equal in width to the current course", async () => {
+    const { screen } = renderFullscreen(repositoryWith(() => prerequisites({})))
+
+    const emptyText = await screen.findByTestId("dependency-empty-state-text")
+    fireEvent(screen.getByTestId("detailed-columns-container"), "layout", {
+      nativeEvent: { layout: { width: 700, height: 200 } },
+    })
+
+    expect(emptyText).toHaveTextContent("No prerequisites")
+    expect(emptyText).toHaveStyle({ fontSize: 16 })
+    expect(emptyText.props.adjustsFontSizeToFit).toBeUndefined()
+    expect(screen.getByTestId("detailed-prerequisite-columns").props.style).toEqual({ width: 330 })
+    expect(screen.getByTestId("dependency-current-course-node").props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ width: 330 })]),
+    )
+    expect(screen.getByTestId("prerequisite-column-label").props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ width: 330 })]),
+    )
+    expect(screen.getByTestId("current-course-column-label").props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ width: 330 })]),
+    )
   })
 
   test("keeps the grouped prerequisite tree compact and independent from pre-prerequisites", async () => {

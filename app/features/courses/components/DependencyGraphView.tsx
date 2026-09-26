@@ -20,6 +20,7 @@ import {
 } from "../utils/dependencyConnectorPath"
 
 const CONNECTOR_ARROW_SIZE = 7
+const DETAILED_CONNECTOR_WIDTH = 40
 
 interface DependencyGraphViewProps {
   graph: ResolvedDependencyGraph
@@ -462,18 +463,22 @@ interface ConnectorAnchors {
 }
 
 interface DetailedPrerequisiteGraphProps {
+  columnWidth: number
   item: ResolvedDependencyItem
   onFirstCourseLayout: () => void
   onOpenCourse: (courseCode: string) => void
   setFirstCourseRef: (node: View | null) => void
+  showPrePrerequisites: boolean
   termName: string
 }
 
 function DetailedPrerequisiteGraph({
+  columnWidth,
   item,
   onFirstCourseLayout,
   onOpenCourse,
   setFirstCourseRef,
+  showPrePrerequisites,
   termName,
 }: DetailedPrerequisiteGraphProps) {
   const {
@@ -566,32 +571,39 @@ function DetailedPrerequisiteGraph({
       testID="detailed-prerequisite-canvas"
     >
       <View style={$independentPrerequisiteColumns}>
-        <View style={themed($independentPrePrerequisiteColumn)} testID="pre-prerequisite-column">
-          {entries.map(({ item: course, path }) =>
-            course.prerequisites ? (
-              <View
-                collapsable={false}
-                key={path}
-                onLayout={() => measureAnchor(path, "source")}
-                ref={(node) => setSourceRef(path, node)}
-                testID={`pre-prerequisite-block-${path}`}
-              >
-                <DetailedPrePrerequisiteItem
-                  item={course.prerequisites}
-                  onOpenCourse={onOpenCourse}
-                  path={`${path}-pre`}
-                  termName={termName}
-                />
-              </View>
-            ) : null,
-          )}
-        </View>
-        <View style={$independentConnectorGutter} />
+        {showPrePrerequisites && (
+          <Fragment>
+            <View
+              style={[themed($independentPrePrerequisiteColumn), { width: columnWidth }]}
+              testID="pre-prerequisite-column"
+            >
+              {entries.map(({ item: course, path }) =>
+                course.prerequisites ? (
+                  <View
+                    collapsable={false}
+                    key={path}
+                    onLayout={() => measureAnchor(path, "source")}
+                    ref={(node) => setSourceRef(path, node)}
+                    testID={`pre-prerequisite-block-${path}`}
+                  >
+                    <DetailedPrePrerequisiteItem
+                      item={course.prerequisites}
+                      onOpenCourse={onOpenCourse}
+                      path={`${path}-pre`}
+                      termName={termName}
+                    />
+                  </View>
+                ) : null,
+              )}
+            </View>
+            <View style={$independentConnectorGutter} />
+          </Fragment>
+        )}
         <View
           collapsable={false}
           onLayout={() => requestAnimationFrame(measureAllAnchors)}
           ref={targetBoundaryRef}
-          style={$independentPrerequisiteTreeColumn}
+          style={[$independentPrerequisiteTreeColumn, { width: columnWidth }]}
           testID="detailed-prerequisite-tree"
         >
           <DetailedPrerequisiteTreeItem
@@ -608,7 +620,7 @@ function DetailedPrerequisiteGraph({
         </View>
       </View>
 
-      {canvasSize.width > 0 && canvasSize.height > 0 && (
+      {showPrePrerequisites && canvasSize.width > 0 && canvasSize.height > 0 && (
         <Svg
           accessibilityElementsHidden
           height={canvasSize.height}
@@ -654,8 +666,23 @@ function DetailedGraphColumns({ graph, onOpenCourse, termName }: DetailedGraphCo
   } = useAppTheme()
   const rowRef = useRef<View>(null)
   const firstCourseRef = useRef<View>(null)
+  const [availableWidth, setAvailableWidth] = useState(0)
   const [firstCourseCenterY, setFirstCourseCenterY] = useState<number | undefined>()
   const [currentCourseHeight, setCurrentCourseHeight] = useState(76)
+  const showPrePrerequisites = useMemo(
+    () =>
+      !!graph.prerequisites &&
+      collectDetailedCourseEntries(graph.prerequisites).some(({ item }) => !!item.prerequisites),
+    [graph.prerequisites],
+  )
+  const columnCount = showPrePrerequisites ? 3 : 2
+  const columnWidth = Math.max(
+    0,
+    (availableWidth - (columnCount - 1) * DETAILED_CONNECTOR_WIDTH) / columnCount,
+  )
+  const prerequisiteWidth = showPrePrerequisites
+    ? columnWidth * 2 + DETAILED_CONNECTOR_WIDTH
+    : columnWidth
 
   const measureFirstCourse = useCallback(() => {
     const row = rowRef.current
@@ -685,58 +712,89 @@ function DetailedGraphColumns({ graph, onOpenCourse, termName }: DetailedGraphCo
 
   return (
     <View
-      collapsable={false}
-      onLayout={() => requestAnimationFrame(measureFirstCourse)}
-      ref={rowRef}
-      style={$columns}
+      onLayout={({ nativeEvent: { layout } }) => {
+        setAvailableWidth((previous) =>
+          Math.abs(previous - layout.width) < 0.5 ? previous : layout.width,
+        )
+      }}
+      style={$detailedColumnsContainer}
+      testID="detailed-columns-container"
     >
-      <View style={$detailedPrerequisiteColumns}>
-        {graph.mode === "none" ? (
-          <EmptyPrerequisites />
-        ) : graph.prerequisites ? (
-          <DetailedPrerequisiteGraph
-            item={graph.prerequisites}
-            onFirstCourseLayout={() => requestAnimationFrame(measureFirstCourse)}
-            onOpenCourse={onOpenCourse}
-            setFirstCourseRef={setFirstCourseRef}
-            termName={termName}
-          />
-        ) : (
-          <View style={themed($emptyNode)}>
-            <Text text="No course codes could be extracted" size="xs" style={$centerText} />
-          </View>
-        )}
+      <View style={$columnLabels}>
+        <View
+          style={[$detailedPrerequisiteLabelSlot, { width: prerequisiteWidth }]}
+          testID="prerequisite-column-label"
+        >
+          <Text text="PREREQUISITES" size="xxs" weight="bold" style={themed($columnLabel)} />
+        </View>
+        <View style={$columnLabelSpacer} testID="dependency-column-label-spacer" />
+        <View
+          style={[$detailedCurrentCourseLabelSlot, { width: columnWidth }]}
+          testID="current-course-column-label"
+        >
+          <Text text="CURRENT COURSE" size="xxs" weight="bold" style={themed($columnLabel)} />
+        </View>
       </View>
-      <Svg
-        accessibilityElementsHidden
-        height={20}
-        importantForAccessibility="no"
-        pointerEvents="none"
-        style={{ marginTop: alignedNodeTop(arrowCenterY, 20) }}
-        testID="dependency-main-connector"
-        width={40}
-      >
-        <ConnectorPaths
-          color={colors.tint}
-          source={{ x: 4, y: 10 }}
-          testID="dependency-main-connector"
-          tip={{ x: 30, y: 10 }}
-        />
-      </Svg>
       <View
-        accessible
-        accessibilityLabel={`${graph.courseCode}, current course, ${graph.title ?? "title unavailable"}`}
-        onLayout={({ nativeEvent: { layout } }) => setCurrentCourseHeight(layout.height)}
-        style={[
-          themed($currentNode),
-          { marginTop: alignedNodeTop(arrowCenterY, currentCourseHeight) },
-        ]}
-        testID="dependency-current-course-node"
+        collapsable={false}
+        onLayout={() => requestAnimationFrame(measureFirstCourse)}
+        ref={rowRef}
+        style={$columns}
       >
-        <Text text={graph.courseCode} weight="bold" style={themed($currentCode)} />
-        {!!graph.title && (
-          <Text text={graph.title} size="xs" numberOfLines={3} style={$centerText} />
-        )}
+        <View style={{ width: prerequisiteWidth }} testID="detailed-prerequisite-columns">
+          {graph.mode === "none" ? (
+            <EmptyPrerequisites />
+          ) : graph.prerequisites ? (
+            <DetailedPrerequisiteGraph
+              columnWidth={columnWidth}
+              item={graph.prerequisites}
+              onFirstCourseLayout={() => requestAnimationFrame(measureFirstCourse)}
+              onOpenCourse={onOpenCourse}
+              setFirstCourseRef={setFirstCourseRef}
+              showPrePrerequisites={showPrePrerequisites}
+              termName={termName}
+            />
+          ) : (
+            <View style={themed($emptyNode)}>
+              <Text text="No course codes could be extracted" size="sm" style={$centerText} />
+            </View>
+          )}
+        </View>
+        <Svg
+          accessibilityElementsHidden
+          height={20}
+          importantForAccessibility="no"
+          pointerEvents="none"
+          style={{ marginTop: alignedNodeTop(arrowCenterY, 20) }}
+          testID="dependency-main-connector"
+          width={DETAILED_CONNECTOR_WIDTH}
+        >
+          <ConnectorPaths
+            color={colors.tint}
+            source={{ x: 4, y: 10 }}
+            testID="dependency-main-connector"
+            tip={{ x: 30, y: 10 }}
+          />
+        </Svg>
+        <View
+          accessible
+          accessibilityLabel={`${graph.courseCode}, current course, ${graph.title ?? "title unavailable"}`}
+          onLayout={({ nativeEvent: { layout } }) => setCurrentCourseHeight(layout.height)}
+          style={[
+            themed($currentNode),
+            $fixedWidthCurrentNode,
+            {
+              marginTop: alignedNodeTop(arrowCenterY, currentCourseHeight),
+              width: columnWidth,
+            },
+          ]}
+          testID="dependency-current-course-node"
+        >
+          <Text text={graph.courseCode} weight="bold" style={themed($currentCode)} />
+          {!!graph.title && (
+            <Text text={graph.title} size="xs" numberOfLines={3} style={$centerText} />
+          )}
+        </View>
       </View>
     </View>
   )
@@ -748,11 +806,8 @@ function EmptyPrerequisites() {
   return (
     <View style={themed($emptyNode)}>
       <Text
-        adjustsFontSizeToFit
-        minimumFontScale={0.9}
-        numberOfLines={1}
         text="No prerequisites"
-        size="xs"
+        size="sm"
         weight="semiBold"
         style={$centerText}
         testID="dependency-empty-state-text"
@@ -772,52 +827,51 @@ export function DependencyGraphView({
 
   return (
     <View style={themed($graphSurface)} testID="dependency-graph">
-      <View style={$columnLabels}>
-        <View
-          style={detailed ? $detailedPrerequisiteLabelSlot : $columnLabelSlot}
-          testID="prerequisite-column-label"
-        >
-          <Text text="PREREQUISITES" size="xxs" weight="bold" style={themed($columnLabel)} />
-        </View>
-        <View style={$columnLabelSpacer} testID="dependency-column-label-spacer" />
-        <View style={$columnLabelSlot} testID="current-course-column-label">
-          <Text text="CURRENT COURSE" size="xxs" weight="bold" style={themed($columnLabel)} />
-        </View>
-      </View>
       {detailed ? (
         <DetailedGraphColumns graph={graph} onOpenCourse={onOpenCourse} termName={termName} />
       ) : (
-        <View style={$columns}>
-          <View style={$prerequisiteColumn}>
-            {graph.mode === "none" ? (
-              <EmptyPrerequisites />
-            ) : graph.prerequisites ? (
-              <DependencyItem
-                item={graph.prerequisites}
-                onOpenCourse={onOpenCourse}
-                path="root"
-                termName={termName}
-                variant={variant}
-              />
-            ) : (
-              <View style={themed($emptyNode)}>
-                <Text text="No course codes could be extracted" size="xs" style={$centerText} />
-              </View>
-            )}
+        <Fragment>
+          <View style={$columnLabels}>
+            <View style={$columnLabelSlot} testID="prerequisite-column-label">
+              <Text text="PREREQUISITES" size="xxs" weight="bold" style={themed($columnLabel)} />
+            </View>
+            <View style={$columnLabelSpacer} testID="dependency-column-label-spacer" />
+            <View style={$columnLabelSlot} testID="current-course-column-label">
+              <Text text="CURRENT COURSE" size="xxs" weight="bold" style={themed($columnLabel)} />
+            </View>
           </View>
-          <ArrowConnector />
-          <View
-            accessible
-            accessibilityLabel={`${graph.courseCode}, current course, ${graph.title ?? "title unavailable"}`}
-            style={themed($currentNode)}
-            testID="dependency-current-course-node"
-          >
-            <Text text={graph.courseCode} weight="bold" style={themed($currentCode)} />
-            {!!graph.title && (
-              <Text text={graph.title} size="xs" numberOfLines={3} style={$centerText} />
-            )}
+          <View style={$columns}>
+            <View style={$prerequisiteColumn}>
+              {graph.mode === "none" ? (
+                <EmptyPrerequisites />
+              ) : graph.prerequisites ? (
+                <DependencyItem
+                  item={graph.prerequisites}
+                  onOpenCourse={onOpenCourse}
+                  path="root"
+                  termName={termName}
+                  variant={variant}
+                />
+              ) : (
+                <View style={themed($emptyNode)}>
+                  <Text text="No course codes could be extracted" size="xs" style={$centerText} />
+                </View>
+              )}
+            </View>
+            <ArrowConnector />
+            <View
+              accessible
+              accessibilityLabel={`${graph.courseCode}, current course, ${graph.title ?? "title unavailable"}`}
+              style={themed($currentNode)}
+              testID="dependency-current-course-node"
+            >
+              <Text text={graph.courseCode} weight="bold" style={themed($currentCode)} />
+              {!!graph.title && (
+                <Text text={graph.title} size="xs" numberOfLines={3} style={$centerText} />
+              )}
+            </View>
           </View>
-        </View>
+        </Fragment>
       )}
     </View>
   )
@@ -829,8 +883,15 @@ const $graphSurface: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
   borderRadius: 24,
   borderWidth: 1,
   gap: spacing.sm,
+  minWidth: 0,
   padding: spacing.md,
+  width: "100%",
 })
+
+const $detailedColumnsContainer: ViewStyle = {
+  minWidth: 0,
+  width: "100%",
+}
 
 const $columnLabels: ViewStyle = {
   alignItems: "center",
@@ -845,12 +906,16 @@ const $columnLabelSlot: ViewStyle = {
 
 const $detailedPrerequisiteLabelSlot: ViewStyle = {
   alignItems: "center",
-  flex: 2,
+  minWidth: 0,
+}
+
+const $detailedCurrentCourseLabelSlot: ViewStyle = {
+  alignItems: "center",
   minWidth: 0,
 }
 
 const $columnLabelSpacer: ViewStyle = {
-  width: 40,
+  width: DETAILED_CONNECTOR_WIDTH,
 }
 
 const $columnLabel: ThemedStyle<TextStyle> = ({ colors }) => ({
@@ -866,11 +931,6 @@ const $columns: ViewStyle = {
 
 const $prerequisiteColumn: ViewStyle = {
   flex: 1,
-  minWidth: 0,
-}
-
-const $detailedPrerequisiteColumns: ViewStyle = {
-  flex: 2,
   minWidth: 0,
 }
 
@@ -905,6 +965,10 @@ const $currentNode: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
   minWidth: 0,
   padding: spacing.sm,
 })
+
+const $fixedWidthCurrentNode: ViewStyle = {
+  flex: 0,
+}
 
 const $currentCode: ThemedStyle<TextStyle> = ({ colors }) => ({
   color: colors.tint,
@@ -957,17 +1021,15 @@ const $independentPrerequisiteColumns: ViewStyle = {
 }
 
 const $independentPrePrerequisiteColumn: ThemedStyle<ViewStyle> = ({ spacing }) => ({
-  flex: 1,
   gap: spacing.sm,
   minWidth: 0,
 })
 
 const $independentConnectorGutter: ViewStyle = {
-  width: 40,
+  width: DETAILED_CONNECTOR_WIDTH,
 }
 
 const $independentPrerequisiteTreeColumn: ViewStyle = {
-  flex: 1,
   minWidth: 0,
 }
 
@@ -1024,8 +1086,9 @@ const $courseNode: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
 
 const $detailedCourseNode: ThemedStyle<ViewStyle> = ({ spacing }) => ({
   minHeight: 76,
-  minWidth: 144,
+  minWidth: 0,
   paddingHorizontal: spacing.sm,
+  width: "100%",
 })
 
 const $unavailableNode: ThemedStyle<ViewStyle> = ({ colors }) => ({
@@ -1072,12 +1135,15 @@ const $nestedLabel: ThemedStyle<TextStyle> = ({ colors }) => ({
 })
 
 const $emptyNode: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
+  alignItems: "center",
   backgroundColor: colors.palette.neutral200,
   borderRadius: 14,
   justifyContent: "center",
   minHeight: 76,
+  minWidth: 0,
   paddingHorizontal: spacing.xs,
   paddingVertical: spacing.sm,
+  width: "100%",
 })
 
 const $secondaryText: ThemedStyle<TextStyle> = ({ colors }) => ({
