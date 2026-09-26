@@ -216,20 +216,49 @@ function DependencyItem({ item, onOpenCourse, path, termName, variant }: Depende
 }
 
 interface DetailedItemProps {
+  groupDepth?: number
   item: ResolvedDependencyItem
   onOpenCourse: (courseCode: string) => void
   path: string
   termName: string
 }
 
-function DetailedPrerequisiteCell({ children, testID }: { children: ReactNode; testID?: string }) {
+function DetailedPrerequisiteCell({
+  children,
+  insetDepth = 0,
+  testID,
+}: {
+  children: ReactNode
+  insetDepth?: number
+  testID?: string
+}) {
   return (
     <View style={$layeredPrerequisiteRow} testID={testID}>
       <View style={$layeredColumn} />
-      <View style={$layeredConnectorSlot} />
-      <View style={$layeredColumn}>{children}</View>
+      <View style={$layeredCellSpacer} />
+      <View style={[$layeredColumn, rightColumnInset(insetDepth)]}>{children}</View>
     </View>
   )
+}
+
+const LOGIC_GROUP_INSET = 8
+const LAYERED_CONNECTOR_WIDTH = 40
+
+function rightColumnInset(depth: number): ViewStyle | undefined {
+  return depth > 0 ? { paddingHorizontal: depth * LOGIC_GROUP_INSET } : undefined
+}
+
+function logicFramePosition(depth: number): ViewStyle {
+  const inset = depth * LOGIC_GROUP_INSET
+
+  return {
+    bottom: 0,
+    left: "50%",
+    marginLeft: LAYERED_CONNECTOR_WIDTH / 2 + inset,
+    position: "absolute",
+    right: inset,
+    top: 0,
+  }
 }
 
 function DetailedPrePrerequisiteItem({ item, onOpenCourse, path, termName }: DetailedItemProps) {
@@ -317,11 +346,18 @@ function DetailedPrePrerequisiteItem({ item, onOpenCourse, path, termName }: Det
   )
 }
 
-function DetailedPrerequisiteItem({ item, onOpenCourse, path, termName }: DetailedItemProps) {
+function DetailedPrerequisiteItem({
+  groupDepth = 0,
+  item,
+  onOpenCourse,
+  path,
+  termName,
+}: DetailedItemProps) {
   const { themed } = useAppTheme()
 
   if (item.kind === "group") {
     const extracted = item.operator === "extracted"
+    const contentDepth = groupDepth + 1
 
     return (
       <View
@@ -329,8 +365,15 @@ function DetailedPrerequisiteItem({ item, onOpenCourse, path, termName }: Detail
         style={$detailedPrerequisiteGroup}
         testID={`dependency-group-${path}`}
       >
+        <View
+          accessibilityElementsHidden
+          importantForAccessibility="no"
+          pointerEvents="none"
+          style={[themed($logicGroupFrame), logicFramePosition(groupDepth)]}
+          testID={`dependency-logic-frame-${path}`}
+        />
         {extracted && (
-          <DetailedPrerequisiteCell>
+          <DetailedPrerequisiteCell insetDepth={contentDepth}>
             <Text
               text={groupLabel(item.operator)}
               size="xxs"
@@ -340,7 +383,7 @@ function DetailedPrerequisiteItem({ item, onOpenCourse, path, termName }: Detail
           </DetailedPrerequisiteCell>
         )}
         {item.children.length === 0 ? (
-          <DetailedPrerequisiteCell>
+          <DetailedPrerequisiteCell insetDepth={contentDepth}>
             <Text
               text="No course codes could be extracted"
               size="xs"
@@ -352,7 +395,10 @@ function DetailedPrerequisiteItem({ item, onOpenCourse, path, termName }: Detail
             {item.children.map((child, index) => (
               <Fragment key={`${path}-${index}`}>
                 {index > 0 && !extracted && (
-                  <DetailedPrerequisiteCell testID={`dependency-operator-row-${path}-${index}`}>
+                  <DetailedPrerequisiteCell
+                    insetDepth={contentDepth}
+                    testID={`dependency-operator-row-${path}-${index}`}
+                  >
                     <Text
                       text={groupLabel(item.operator)}
                       size="xxs"
@@ -363,6 +409,7 @@ function DetailedPrerequisiteItem({ item, onOpenCourse, path, termName }: Detail
                   </DetailedPrerequisiteCell>
                 )}
                 <DetailedPrerequisiteItem
+                  groupDepth={contentDepth}
                   item={child}
                   onOpenCourse={onOpenCourse}
                   path={`${path}-${index}`}
@@ -389,7 +436,10 @@ function DetailedPrerequisiteItem({ item, onOpenCourse, path, termName }: Detail
         )}
       </View>
       <View style={$layeredConnectorSlot}>{!!item.prerequisites && <ArrowConnector />}</View>
-      <View style={$layeredColumn}>
+      <View
+        style={[$layeredColumn, rightColumnInset(groupDepth)]}
+        testID={`prerequisite-column-${item.courseCode}`}
+      >
         <CourseNode
           item={item}
           onOpenCourse={onOpenCourse}
@@ -596,7 +646,14 @@ const $groupChildren: ViewStyle = {
 
 const $detailedPrerequisiteGroup: ViewStyle = {
   gap: 4,
+  paddingVertical: 8,
 }
+
+const $logicGroupFrame: ThemedStyle<ViewStyle> = ({ colors }) => ({
+  borderColor: colors.border,
+  borderRadius: 16,
+  borderWidth: 1,
+})
 
 const $courseBranch: ViewStyle = {
   gap: 6,
@@ -614,7 +671,11 @@ const $layeredColumn: ViewStyle = {
 
 const $layeredConnectorSlot: ViewStyle = {
   minHeight: 76,
-  width: 40,
+  width: LAYERED_CONNECTOR_WIDTH,
+}
+
+const $layeredCellSpacer: ViewStyle = {
+  width: LAYERED_CONNECTOR_WIDTH,
 }
 
 const $prePrerequisiteNodeRow: ViewStyle = {

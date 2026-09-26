@@ -263,9 +263,33 @@ describe("DependencyExplorerFullscreenScreen", () => {
     const { screen } = renderFullscreen(repository)
 
     expect(await screen.findByTestId("dependency-node-COMP 3000")).toBeTruthy()
-    expect(screen.getByTestId("dependency-group-root").props.style).toEqual({ gap: 4 })
+    expect(screen.getByTestId("dependency-group-root").props.style).toEqual({
+      gap: 4,
+      paddingVertical: 8,
+    })
     expect(screen.getByTestId("dependency-group-root").props.style).not.toEqual(
       expect.objectContaining({ borderWidth: expect.anything() }),
+    )
+
+    const outerLogicFrame = screen
+      .UNSAFE_getAllByProps({ testID: "dependency-logic-frame-root" })
+      .find((candidate) => Array.isArray(candidate.props.style))
+    const nestedLogicFrame = screen
+      .UNSAFE_getAllByProps({ testID: "dependency-logic-frame-root-0" })
+      .find((candidate) => Array.isArray(candidate.props.style))
+
+    expect(outerLogicFrame?.props.pointerEvents).toBe("none")
+    expect(outerLogicFrame?.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ borderRadius: 16, borderWidth: 1 }),
+        expect.objectContaining({ left: "50%", marginLeft: 20, right: 0 }),
+      ]),
+    )
+    expect(nestedLogicFrame?.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ borderRadius: 16, borderWidth: 1 }),
+        expect.objectContaining({ left: "50%", marginLeft: 28, right: 8 }),
+      ]),
     )
     expect(screen.getByTestId("dependency-operator-root-1")).toHaveTextContent("AND")
     expect(screen.getByTestId("dependency-operator-root-0-1")).toHaveTextContent("OR")
@@ -278,8 +302,18 @@ describe("DependencyExplorerFullscreenScreen", () => {
     expect(within(directOperatorRow).getByText("AND")).toBeTruthy()
 
     const compPrePrerequisites = screen.getByTestId("pre-prerequisite-column-COMP 3000")
+    const nestedPrerequisite = screen.getByTestId("prerequisite-column-COMP 3000")
+    const outerPrerequisite = screen.getByTestId("prerequisite-column-PHYS 1000")
+
     expect(within(compPrePrerequisites).getByTestId("dependency-node-MATH 1000")).toBeTruthy()
     expect(within(compPrePrerequisites).getByTestId("dependency-node-MATH 1001")).toBeTruthy()
+    expect(within(compPrePrerequisites).queryByTestId("dependency-logic-frame-root-0")).toBeNull()
+    expect(nestedPrerequisite.props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ paddingHorizontal: 16 })]),
+    )
+    expect(outerPrerequisite.props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ paddingHorizontal: 8 })]),
+    )
     expect(screen.queryByText("REQUIRES")).toBeNull()
   })
 
