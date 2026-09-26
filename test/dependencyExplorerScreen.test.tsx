@@ -156,6 +156,11 @@ describe("DependencyExplorerScreen", () => {
   test("renders no-prerequisite and extracted-course fallbacks", async () => {
     const noPrerequisite = renderExplorer(repositoryWith())
     expect(await noPrerequisite.screen.findByText("No prerequisites")).toBeTruthy()
+    expect(noPrerequisite.screen.getByTestId("dependency-empty-state-text").props).toMatchObject({
+      adjustsFontSizeToFit: true,
+      minimumFontScale: 0.9,
+      numberOfLines: 1,
+    })
     noPrerequisite.screen.unmount()
 
     const extracted = renderExplorer(

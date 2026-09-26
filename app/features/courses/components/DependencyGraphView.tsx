@@ -180,7 +180,16 @@ export function DependencyGraphView({ graph, onOpenCourse, termName }: Dependenc
         <View style={$prerequisiteColumn}>
           {graph.mode === "none" ? (
             <View style={themed($emptyNode)}>
-              <Text text="No prerequisites" size="sm" weight="semiBold" style={$centerText} />
+              <Text
+                adjustsFontSizeToFit
+                minimumFontScale={0.9}
+                numberOfLines={1}
+                text="No prerequisites"
+                size="xs"
+                weight="semiBold"
+                style={$centerText}
+                testID="dependency-empty-state-text"
+              />
             </View>
           ) : graph.prerequisites ? (
             <DependencyItem
@@ -353,7 +362,8 @@ const $emptyNode: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
   borderRadius: 14,
   justifyContent: "center",
   minHeight: 76,
-  padding: spacing.sm,
+  paddingHorizontal: spacing.xs,
+  paddingVertical: spacing.sm,
 })
 
 const $secondaryText: ThemedStyle<TextStyle> = ({ colors }) => ({
