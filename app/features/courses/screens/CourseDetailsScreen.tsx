@@ -37,20 +37,35 @@ function LabelledValue({ label, value }: LabelledValueProps) {
   )
 }
 
-function CourseFacts({ detail }: { detail: CourseDetail }) {
-  const facts = [
-    ["Campus", detail.campusName || detail.campusNickname || detail.campusCode],
-    ["Career", detail.careerType || detail.careerCode],
-    ["Department", detail.departmentNickname || detail.departmentCode],
-  ].filter((field): field is [string, string] => Boolean(field[1]?.trim()))
-
-  if (facts.length === 0) return null
+function CourseIdentityBadges({ detail }: { detail: CourseDetail }) {
+  const { themed } = useAppTheme()
+  const department = (detail.departmentNickname || detail.departmentCode).trim()
+  const career = (detail.careerType || detail.careerCode).trim()
+  const departmentCourseCode = department ? `${department}/${detail.code}` : detail.code
 
   return (
-    <View style={$factsGrid}>
-      {facts.map(([label, value]) => (
-        <LabelledValue key={label} label={label} value={value} />
-      ))}
+    <View style={$badgeRow} testID="course-identity-badges">
+      <View style={themed($primaryBadge)}>
+        <Text
+          text={departmentCourseCode}
+          weight="bold"
+          size="sm"
+          style={themed($primaryBadgeText)}
+          testID="department-course-code"
+        />
+      </View>
+      <View style={themed($badge)}>
+        <Text
+          text={formatCredits(detail.minCredits, detail.maxCredits)}
+          size="xs"
+          testID="course-credits"
+        />
+      </View>
+      {!!career && (
+        <View style={themed($badge)}>
+          <Text text={career} size="xs" testID="course-career" />
+        </View>
+      )}
     </View>
   )
 }
@@ -197,19 +212,7 @@ export function CourseDetailsScreen({
         <>
           <View style={themed($hero)}>
             <Text text={detail.title} preset="heading" selectable />
-            <View style={$badgeRow}>
-              <View style={themed($primaryBadge)}>
-                <Text
-                  text={detail.code}
-                  weight="bold"
-                  size="sm"
-                  style={themed($primaryBadgeText)}
-                />
-              </View>
-              <View style={themed($badge)}>
-                <Text text={formatCredits(detail.minCredits, detail.maxCredits)} size="xs" />
-              </View>
-            </View>
+            <CourseIdentityBadges detail={detail} />
             <Pressable
               accessibilityLabel={`Semester, ${selectedSemester?.termName ?? selectedTermCode}`}
               accessibilityRole="button"
@@ -239,7 +242,6 @@ export function CourseDetailsScreen({
 
           <View style={themed($section)}>
             <Text text="Additional Information" preset="subheading" />
-            <CourseFacts detail={detail} />
 
             {visibleAttributes.length > 0 && (
               <Accordion title={`Attributes (${visibleAttributes.length})`}>
@@ -314,6 +316,7 @@ export function CourseDetailsScreen({
 function OtherCourseInformation({ detail }: { detail: CourseDetail }) {
   const { themed } = useAppTheme()
   const fields = [
+    ["Campus", detail.campusName || detail.campusNickname || detail.campusCode],
     ["Academic year", detail.academicYear],
     ["School", detail.schoolCode],
     ["Course format", detail.vectorDisplay || detail.vector],
@@ -409,12 +412,6 @@ const $selectorText: ViewStyle = {
 const $section: ThemedStyle<ViewStyle> = ({ spacing }) => ({
   gap: spacing.md,
 })
-
-const $factsGrid: ViewStyle = {
-  flexDirection: "row",
-  flexWrap: "wrap",
-  gap: 10,
-}
 
 const $labelledValue: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
   backgroundColor: colors.palette.neutral100,

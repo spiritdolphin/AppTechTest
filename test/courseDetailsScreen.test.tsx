@@ -95,10 +95,10 @@ function courseDetail(termCode: string, overrides: Partial<CourseDetail> = {}): 
     campusName: "CWB Campus",
     campusNickname: "CWB",
     departmentCode: "COMP",
-    departmentNickname: "COMP",
+    departmentNickname: termCode === "new" ? "CSE" : "SENG",
     schoolCode: "SENG",
     careerCode: "UGRD",
-    careerType: "UG",
+    careerType: termCode === "new" ? "UG" : "PG",
     previous: "",
     alternate: "COMP 1020",
     prerequisite: "MATH 1012 AND COMP 1001",
@@ -184,15 +184,22 @@ describe("CourseDetailsScreen", () => {
     const { navigation, screen } = renderDetails(createRepository())
 
     expect(await screen.findByText("Introduction to Computer Science")).toBeTruthy()
-    expect(screen.getByText("COMP 1021")).toBeTruthy()
+    expect(screen.getByText("CSE/COMP 1021")).toBeTruthy()
     expect(screen.getByText("3 credits")).toBeTruthy()
     expect(screen.getByText("Description for new.")).toBeTruthy()
-    expect(screen.getByText("CWB Campus")).toBeTruthy()
+    expect(screen.queryByText("CWB Campus")).toBeNull()
     expect(screen.getByText("UG")).toBeTruthy()
-    expect(screen.getByText("COMP")).toBeTruthy()
     expect(screen.getByText("MATH 1012 AND COMP 1001")).toBeTruthy()
     expect(screen.getByText("COMP 1002")).toBeTruthy()
     expect(screen.getByText("COMP 1022P")).toBeTruthy()
+
+    const rendered = JSON.stringify(screen.toJSON())
+    expect(rendered.indexOf("Introduction to Computer Science")).toBeLessThan(
+      rendered.indexOf("CSE/COMP 1021"),
+    )
+    expect(rendered.indexOf("CSE/COMP 1021")).toBeLessThan(rendered.indexOf("3 credits"))
+    expect(rendered.indexOf("3 credits")).toBeLessThan(rendered.indexOf("UG"))
+    expect(rendered.indexOf("UG")).toBeLessThan(rendered.indexOf("details-semester-selector"))
 
     fireEvent.press(screen.getByLabelText("Attributes (1)"))
     expect(screen.getByText("Common Core attribute")).toBeTruthy()
@@ -211,7 +218,12 @@ describe("CourseDetailsScreen", () => {
     await screen.findByText("Introduction to Computer Science")
 
     expect(screen.queryByText("N/A")).toBeNull()
+    expect(screen.queryByText("CWB Campus")).toBeNull()
+    expect(screen.queryByText("DEPARTMENT")).toBeNull()
+    expect(screen.queryByText("CAREER")).toBeNull()
     fireEvent.press(screen.getByLabelText("More Course Information"))
+    expect(screen.getByText("Campus")).toBeTruthy()
+    expect(screen.getByText("CWB Campus")).toBeTruthy()
     expect(screen.getByText("Alternate")).toBeTruthy()
     expect(screen.getByText("COMP 1020")).toBeTruthy()
     expect(screen.getByText("Background")).toBeTruthy()
@@ -237,6 +249,34 @@ describe("CourseDetailsScreen", () => {
 
     expect(await screen.findByText("Computing Fundamentals")).toBeTruthy()
     expect(screen.getByText("Description for old.")).toBeTruthy()
+    expect(screen.getByText("SENG/COMP 1021")).toBeTruthy()
+    expect(screen.getByText("PG")).toBeTruthy()
+    expect(screen.queryByText("CSE/COMP 1021")).toBeNull()
+    expect(screen.queryByText("UG")).toBeNull()
+  })
+
+  test("omits empty department, career, and campus values without malformed badges", async () => {
+    const emptyIdentityDetail = courseDetail("new", {
+      campusCode: "",
+      campusName: "",
+      campusNickname: "",
+      careerCode: "",
+      careerType: "",
+      departmentCode: "",
+      departmentNickname: "",
+    })
+    const { screen } = renderDetails(
+      createRepository({ new: () => details("new", [emptyIdentityDetail]) }),
+    )
+
+    await screen.findByText("Introduction to Computer Science")
+    expect(screen.getByTestId("department-course-code")).toHaveTextContent("COMP 1021")
+    expect(screen.getByTestId("department-course-code")).not.toHaveTextContent("/")
+    expect(screen.queryByTestId("course-career")).toBeNull()
+
+    fireEvent.press(screen.getByLabelText("More Course Information"))
+    expect(screen.queryByText("Campus")).toBeNull()
+    expect(screen.queryByText("N/A")).toBeNull()
   })
 
   test("renders loading, missing, and error states", async () => {
