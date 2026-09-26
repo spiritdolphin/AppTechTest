@@ -213,6 +213,16 @@ interface DetailedItemProps {
   termName: string
 }
 
+function DetailedPrerequisiteCell({ children, testID }: { children: ReactNode; testID?: string }) {
+  return (
+    <View style={$layeredPrerequisiteRow} testID={testID}>
+      <View style={$layeredColumn} />
+      <View style={$layeredConnectorSlot} />
+      <View style={$layeredColumn}>{children}</View>
+    </View>
+  )
+}
+
 function DetailedPrePrerequisiteItem({ item, onOpenCourse, path, termName }: DetailedItemProps) {
   const { themed } = useAppTheme()
 
@@ -312,35 +322,41 @@ function DetailedPrerequisiteItem({ item, onOpenCourse, path, termName }: Detail
     return (
       <View
         accessibilityLabel={`${groupLabel(item.operator)} prerequisite group`}
-        style={themed($groupCard)}
+        style={$detailedPrerequisiteGroup}
         testID={`dependency-group-${path}`}
       >
         {extracted && (
-          <Text
-            text={groupLabel(item.operator)}
-            size="xxs"
-            weight="bold"
-            style={themed($groupLabel)}
-          />
+          <DetailedPrerequisiteCell>
+            <Text
+              text={groupLabel(item.operator)}
+              size="xxs"
+              weight="bold"
+              style={themed($groupLabel)}
+            />
+          </DetailedPrerequisiteCell>
         )}
         {item.children.length === 0 ? (
-          <Text
-            text="No course codes could be extracted"
-            size="xs"
-            style={themed($secondaryText)}
-          />
+          <DetailedPrerequisiteCell>
+            <Text
+              text="No course codes could be extracted"
+              size="xs"
+              style={themed($secondaryText)}
+            />
+          </DetailedPrerequisiteCell>
         ) : (
           <View style={$groupChildren}>
             {item.children.map((child, index) => (
               <Fragment key={`${path}-${index}`}>
                 {index > 0 && !extracted && (
-                  <Text
-                    text={groupLabel(item.operator)}
-                    size="xxs"
-                    weight="bold"
-                    style={themed($groupLabel)}
-                    testID={`dependency-operator-${path}-${index}`}
-                  />
+                  <DetailedPrerequisiteCell testID={`dependency-operator-row-${path}-${index}`}>
+                    <Text
+                      text={groupLabel(item.operator)}
+                      size="xxs"
+                      weight="bold"
+                      style={themed($groupLabel)}
+                      testID={`dependency-operator-${path}-${index}`}
+                    />
+                  </DetailedPrerequisiteCell>
                 )}
                 <DetailedPrerequisiteItem
                   item={child}
@@ -559,6 +575,10 @@ const $groupLabel: ThemedStyle<TextStyle> = ({ colors, spacing }) => ({
 })
 
 const $groupChildren: ViewStyle = {
+  gap: 4,
+}
+
+const $detailedPrerequisiteGroup: ViewStyle = {
   gap: 4,
 }
 

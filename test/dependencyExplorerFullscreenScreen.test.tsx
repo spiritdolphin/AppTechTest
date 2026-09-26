@@ -237,9 +237,19 @@ describe("DependencyExplorerFullscreenScreen", () => {
     const { screen } = renderFullscreen(repository)
 
     expect(await screen.findByTestId("dependency-node-COMP 3000")).toBeTruthy()
+    expect(screen.getByTestId("dependency-group-root").props.style).toEqual({ gap: 4 })
+    expect(screen.getByTestId("dependency-group-root").props.style).not.toEqual(
+      expect.objectContaining({ borderWidth: expect.anything() }),
+    )
     expect(screen.getByTestId("dependency-operator-root-1")).toHaveTextContent("AND")
     expect(screen.getByTestId("dependency-operator-root-0-1")).toHaveTextContent("OR")
     expect(screen.getByTestId("pre-prerequisite-operator-root-0-0-pre-1")).toHaveTextContent("OR")
+
+    const directOperatorRow = screen.getByTestId("dependency-operator-row-root-1")
+    expect(directOperatorRow.props.style).toEqual(
+      expect.objectContaining({ alignItems: "flex-start", flexDirection: "row" }),
+    )
+    expect(within(directOperatorRow).getByText("AND")).toBeTruthy()
 
     const compPrePrerequisites = screen.getByTestId("pre-prerequisite-column-COMP 3000")
     expect(within(compPrePrerequisites).getByTestId("dependency-node-MATH 1000")).toBeTruthy()
