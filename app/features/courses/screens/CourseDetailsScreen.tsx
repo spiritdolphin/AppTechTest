@@ -41,7 +41,7 @@ function CourseIdentityBadges({ detail }: { detail: CourseDetail }) {
   const { themed } = useAppTheme()
   const department = (detail.departmentNickname || detail.departmentCode).trim()
   const career = (detail.careerType || detail.careerCode).trim()
-  const departmentCourseCode = department ? `${department}/${detail.code}` : detail.code
+  const departmentCourseCode = department ? `${department} | ${detail.code}` : detail.code
 
   return (
     <View style={$badgeRow} testID="course-identity-badges">
@@ -316,10 +316,9 @@ export function CourseDetailsScreen({
 function OtherCourseInformation({ detail }: { detail: CourseDetail }) {
   const { themed } = useAppTheme()
   const fields = [
-    ["Campus", detail.campusName || detail.campusNickname || detail.campusCode],
     ["Academic year", detail.academicYear],
     ["School", detail.schoolCode],
-    ["Course format", detail.vectorDisplay || detail.vector],
+    ["Campus", detail.campusName || detail.campusNickname || detail.campusCode],
     ["Previous", detail.previous],
     ["Alternate", detail.alternate],
     ["Background", detail.background],
@@ -327,7 +326,6 @@ function OtherCourseInformation({ detail }: { detail: CourseDetail }) {
     ["Equivalence", detail.equivalence],
     ["Reference", detail.reference],
     ["Status", detail.status],
-    ["Source updated", detail.sourceTimestamp],
   ].filter((field): field is [string, string] => Boolean(field[1]?.trim()))
 
   if (fields.length === 0) return null

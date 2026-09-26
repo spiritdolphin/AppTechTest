@@ -184,7 +184,7 @@ describe("CourseDetailsScreen", () => {
     const { navigation, screen } = renderDetails(createRepository())
 
     expect(await screen.findByText("Introduction to Computer Science")).toBeTruthy()
-    expect(screen.getByText("CSE/COMP 1021")).toBeTruthy()
+    expect(screen.getByText("CSE | COMP 1021")).toBeTruthy()
     expect(screen.getByText("3 credits")).toBeTruthy()
     expect(screen.getByText("Description for new.")).toBeTruthy()
     expect(screen.queryByText("CWB Campus")).toBeNull()
@@ -195,9 +195,9 @@ describe("CourseDetailsScreen", () => {
 
     const rendered = JSON.stringify(screen.toJSON())
     expect(rendered.indexOf("Introduction to Computer Science")).toBeLessThan(
-      rendered.indexOf("CSE/COMP 1021"),
+      rendered.indexOf("CSE | COMP 1021"),
     )
-    expect(rendered.indexOf("CSE/COMP 1021")).toBeLessThan(rendered.indexOf("3 credits"))
+    expect(rendered.indexOf("CSE | COMP 1021")).toBeLessThan(rendered.indexOf("3 credits"))
     expect(rendered.indexOf("3 credits")).toBeLessThan(rendered.indexOf("UG"))
     expect(rendered.indexOf("UG")).toBeLessThan(rendered.indexOf("details-semester-selector"))
 
@@ -224,12 +224,17 @@ describe("CourseDetailsScreen", () => {
     fireEvent.press(screen.getByLabelText("More Course Information"))
     expect(screen.getByText("Campus")).toBeTruthy()
     expect(screen.getByText("CWB Campus")).toBeTruthy()
+    expect(screen.queryByText("Course format")).toBeNull()
+    expect(screen.queryByText("Source updated")).toBeNull()
     expect(screen.getByText("Alternate")).toBeTruthy()
     expect(screen.getByText("COMP 1020")).toBeTruthy()
     expect(screen.getByText("Background")).toBeTruthy()
     expect(screen.getByText("Reference material")).toBeTruthy()
     expect(screen.queryByText("Previous")).toBeNull()
     expect(screen.queryByText("Co-list")).toBeNull()
+
+    const rendered = JSON.stringify(screen.toJSON())
+    expect(rendered.indexOf("School")).toBeLessThan(rendered.indexOf("Campus"))
   })
 
   test("disables unavailable semesters and loads the selected available version", async () => {
@@ -249,9 +254,9 @@ describe("CourseDetailsScreen", () => {
 
     expect(await screen.findByText("Computing Fundamentals")).toBeTruthy()
     expect(screen.getByText("Description for old.")).toBeTruthy()
-    expect(screen.getByText("SENG/COMP 1021")).toBeTruthy()
+    expect(screen.getByText("SENG | COMP 1021")).toBeTruthy()
     expect(screen.getByText("PG")).toBeTruthy()
-    expect(screen.queryByText("CSE/COMP 1021")).toBeNull()
+    expect(screen.queryByText("CSE | COMP 1021")).toBeNull()
     expect(screen.queryByText("UG")).toBeNull()
   })
 
@@ -271,7 +276,7 @@ describe("CourseDetailsScreen", () => {
 
     await screen.findByText("Introduction to Computer Science")
     expect(screen.getByTestId("department-course-code")).toHaveTextContent("COMP 1021")
-    expect(screen.getByTestId("department-course-code")).not.toHaveTextContent("/")
+    expect(screen.getByTestId("department-course-code")).not.toHaveTextContent("|")
     expect(screen.queryByTestId("course-career")).toBeNull()
 
     fireEvent.press(screen.getByLabelText("More Course Information"))
