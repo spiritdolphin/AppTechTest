@@ -36,6 +36,12 @@
   "plugins": [
     "expo-font",
     [
+      "expo-screen-orientation",
+      {
+        "initialOrientation": "PORTRAIT_UP"
+      }
+    ],
+    [
       "expo-splash-screen",
       {
         "image": "./assets/images/app-icon-android-adaptive-foreground.png",
