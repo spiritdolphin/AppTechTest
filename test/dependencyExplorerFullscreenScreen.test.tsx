@@ -95,8 +95,8 @@ function prerequisites(byCourseCode: PrerequisitesFile["byCourseCode"]): Prerequ
   }
 }
 
-function renderFullscreen(repository: CourseRepository) {
-  const navigation = { goBack: jest.fn(), navigate: jest.fn(), replace: jest.fn() }
+function renderFullscreen(repository: CourseRepository, courseCode = "COMP 4000") {
+  const navigation = { goBack: jest.fn(), navigate: jest.fn(), push: jest.fn(), replace: jest.fn() }
   const screen = render(
     <SafeAreaProvider initialMetrics={initialMetrics}>
       <ThemeProvider>
@@ -106,7 +106,7 @@ function renderFullscreen(repository: CourseRepository) {
           route={{
             key: "dependency-explorer-fullscreen-test",
             name: "DependencyExplorerFullscreen",
-            params: { courseCode: "COMP 4000", termCode: "2610" },
+            params: { courseCode, termCode: "2610" },
           }}
         />
       </ThemeProvider>
@@ -145,6 +145,12 @@ describe("DependencyExplorerFullscreenScreen", () => {
     expect(screen.queryByText("REQUIRES")).toBeNull()
     expect(screen.getByTestId("dependency-more-MATH 2000")).toBeTruthy()
     const moreIndicator = screen.getByTestId("dependency-more-MATH 2000")
+    expect(moreIndicator).toHaveProp("accessibilityRole", "button")
+    expect(moreIndicator).toHaveProp(
+      "accessibilityLabel",
+      "View more prerequisites for MATH 2000 in fullscreen",
+    )
+    expect(moreIndicator).toHaveStyle({ minHeight: 64, minWidth: 44 })
     const moreLabel = within(moreIndicator).UNSAFE_getByProps({
       testID: "dependency-more-label-MATH 2000",
     })
@@ -169,6 +175,13 @@ describe("DependencyExplorerFullscreenScreen", () => {
       "MATH 2000, More prerequisites exist before MATH 2000",
     )
     expect(resolveSpy).toHaveBeenCalledWith("2610", "COMP 4000", 2)
+
+    fireEvent.press(moreIndicator)
+    expect(navigation.push).toHaveBeenCalledWith("DependencyExplorerFullscreen", {
+      courseCode: "MATH 2000",
+      termCode: "2610",
+    })
+    expect(navigation.replace).not.toHaveBeenCalled()
 
     fireEvent(screen.getByTestId("detailed-columns-container"), "layout", {
       nativeEvent: { layout: { width: 700, height: 300 } },
@@ -303,6 +316,52 @@ describe("DependencyExplorerFullscreenScreen", () => {
 
     fireEvent.press(screen.getByTestId("dependency-fullscreen-close"))
     expect(navigation.goBack).toHaveBeenCalledTimes(1)
+  })
+
+  test("opens More within a group and omits it for unavailable courses", async () => {
+    const repository = repositoryWith(
+      () =>
+        prerequisites({
+          "COMP 4000": {
+            originalText: "COMP 3000",
+            referencedCourseCodes: ["COMP 3000"],
+          },
+          "COMP 3000": {
+            originalText: "MATH 2000 OR PHYS 1000",
+            referencedCourseCodes: ["MATH 2000", "PHYS 1000"],
+          },
+          "MATH 2000": {
+            originalText: "CHEM 1000",
+            referencedCourseCodes: ["CHEM 1000"],
+          },
+          "PHYS 1000": {
+            originalText: "BIOL 1000",
+            referencedCourseCodes: ["BIOL 1000"],
+          },
+        }),
+      ["COMP 4000", "COMP 3000", "MATH 2000"],
+    )
+    const { navigation, screen } = renderFullscreen(repository)
+
+    const moreButton = await screen.findByTestId("dependency-more-MATH 2000")
+    expect(screen.getByTestId("dependency-node-PHYS 1000")).toBeDisabled()
+    expect(screen.queryByTestId("dependency-more-PHYS 1000")).toBeNull()
+
+    fireEvent.press(moreButton)
+    expect(navigation.push).toHaveBeenCalledWith("DependencyExplorerFullscreen", {
+      courseCode: "MATH 2000",
+      termCode: "2610",
+    })
+    expect(navigation.replace).not.toHaveBeenCalled()
+    screen.unmount()
+
+    const nextGraph = renderFullscreen(repository, "MATH 2000")
+    expect(await nextGraph.screen.findByTestId("dependency-node-CHEM 1000")).toBeTruthy()
+    expect(
+      within(nextGraph.screen.getByTestId("fullscreen-original-text-card")).getByText("CHEM 1000"),
+    ).toBeTruthy()
+    fireEvent.press(nextGraph.screen.getByTestId("dependency-fullscreen-close"))
+    expect(nextGraph.navigation.goBack).toHaveBeenCalledTimes(1)
   })
 
   test("uses equal, screen-bounded columns when prerequisites have no earlier courses", async () => {

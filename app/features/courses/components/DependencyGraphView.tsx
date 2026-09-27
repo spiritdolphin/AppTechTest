@@ -27,6 +27,7 @@ const DETAILED_CONNECTOR_WIDTH = 40
 interface DependencyGraphViewProps {
   graph: ResolvedDependencyGraph
   onOpenCourse: (courseCode: string) => void
+  onOpenMoreGraph?: (courseCode: string) => void
   termName: string
   variant?: "compact" | "detailed"
 }
@@ -143,7 +144,9 @@ function CourseNode({ item, onOpenCourse, termName, variant }: CourseNodeProps) 
   const marker = markerLabel(item.marker)
   const compactTerm = compactTermName(termName)
   const moreStatus =
-    item.marker === "more" ? `More prerequisites exist before ${item.courseCode}` : undefined
+    item.available && item.marker === "more"
+      ? `More prerequisites exist before ${item.courseCode}`
+      : undefined
   const accessibilityStatus = [
     !item.available ? `Not offered in ${termName}` : undefined,
     marker,
@@ -268,11 +271,18 @@ function DependencyItem({ item, onOpenCourse, path, termName, variant }: Depende
 interface DetailedItemProps {
   item: ResolvedDependencyItem
   onOpenCourse: (courseCode: string) => void
+  onOpenMoreGraph?: (courseCode: string) => void
   path: string
   termName: string
 }
 
-function DetailedPrePrerequisiteItem({ item, onOpenCourse, path, termName }: DetailedItemProps) {
+function DetailedPrePrerequisiteItem({
+  item,
+  onOpenCourse,
+  onOpenMoreGraph,
+  path,
+  termName,
+}: DetailedItemProps) {
   const { themed } = useAppTheme()
 
   if (item.kind === "group") {
@@ -314,6 +324,7 @@ function DetailedPrePrerequisiteItem({ item, onOpenCourse, path, termName }: Det
                 <DetailedPrePrerequisiteItem
                   item={child}
                   onOpenCourse={onOpenCourse}
+                  onOpenMoreGraph={onOpenMoreGraph}
                   path={`${path}-${index}`}
                   termName={termName}
                 />
@@ -327,8 +338,14 @@ function DetailedPrePrerequisiteItem({ item, onOpenCourse, path, termName }: Det
 
   return (
     <View style={$prePrerequisiteNodeRow}>
-      {item.marker === "more" && (
-        <View style={$moreIndicatorRow} testID={`dependency-more-${item.courseCode}`}>
+      {item.available && item.marker === "more" && onOpenMoreGraph && (
+        <Pressable
+          accessibilityLabel={`View more prerequisites for ${item.courseCode} in fullscreen`}
+          accessibilityRole="button"
+          onPress={() => onOpenMoreGraph(item.courseCode)}
+          style={({ pressed }) => [$moreIndicatorRow, pressed && $pressed]}
+          testID={`dependency-more-${item.courseCode}`}
+        >
           <View style={themed($morePill)}>
             <Text
               accessibilityElementsHidden
@@ -341,7 +358,7 @@ function DetailedPrePrerequisiteItem({ item, onOpenCourse, path, termName }: Det
             />
           </View>
           <ArrowConnector compact testID={`dependency-more-arrow-${item.courseCode}`} />
-        </View>
+        </Pressable>
       )}
       <View style={$layeredCourseNode}>
         <CourseNode
@@ -476,6 +493,7 @@ interface DetailedPrerequisiteGraphProps {
   item: ResolvedDependencyItem
   onFirstCourseLayout: () => void
   onOpenCourse: (courseCode: string) => void
+  onOpenMoreGraph?: (courseCode: string) => void
   setFirstCourseRef: (node: View | null) => void
   showPrePrerequisites: boolean
   termName: string
@@ -487,6 +505,7 @@ function DetailedPrerequisiteGraph({
   item,
   onFirstCourseLayout,
   onOpenCourse,
+  onOpenMoreGraph,
   setFirstCourseRef,
   showPrePrerequisites,
   termName,
@@ -603,6 +622,7 @@ function DetailedPrerequisiteGraph({
                     <DetailedPrePrerequisiteItem
                       item={course.prerequisites}
                       onOpenCourse={onOpenCourse}
+                      onOpenMoreGraph={onOpenMoreGraph}
                       path={`${path}-pre`}
                       termName={termName}
                     />
@@ -671,10 +691,16 @@ function DetailedPrerequisiteGraph({
 interface DetailedGraphColumnsProps {
   graph: ResolvedDependencyGraph
   onOpenCourse: (courseCode: string) => void
+  onOpenMoreGraph?: (courseCode: string) => void
   termName: string
 }
 
-function DetailedGraphColumns({ graph, onOpenCourse, termName }: DetailedGraphColumnsProps) {
+function DetailedGraphColumns({
+  graph,
+  onOpenCourse,
+  onOpenMoreGraph,
+  termName,
+}: DetailedGraphColumnsProps) {
   const {
     themed,
     theme: { colors },
@@ -774,6 +800,7 @@ function DetailedGraphColumns({ graph, onOpenCourse, termName }: DetailedGraphCo
               item={graph.prerequisites}
               onFirstCourseLayout={() => requestAnimationFrame(measureFirstCourse)}
               onOpenCourse={onOpenCourse}
+              onOpenMoreGraph={onOpenMoreGraph}
               setFirstCourseRef={setFirstCourseRef}
               showPrePrerequisites={showPrePrerequisites}
               termName={termName}
@@ -843,6 +870,7 @@ function EmptyPrerequisites() {
 export function DependencyGraphView({
   graph,
   onOpenCourse,
+  onOpenMoreGraph,
   termName,
   variant = "compact",
 }: DependencyGraphViewProps) {
@@ -852,7 +880,12 @@ export function DependencyGraphView({
   return (
     <View style={themed($graphSurface)} testID="dependency-graph">
       {detailed ? (
-        <DetailedGraphColumns graph={graph} onOpenCourse={onOpenCourse} termName={termName} />
+        <DetailedGraphColumns
+          graph={graph}
+          onOpenCourse={onOpenCourse}
+          onOpenMoreGraph={onOpenMoreGraph}
+          termName={termName}
+        />
       ) : (
         <Fragment>
           <View style={$columnLabels}>
@@ -1072,6 +1105,8 @@ const $layeredCourseNode: ViewStyle = {
 const $moreIndicatorRow: ViewStyle = {
   alignItems: "center",
   flexDirection: "row",
+  minHeight: 64,
+  minWidth: 44,
 }
 
 const $morePill: ThemedStyle<ViewStyle> = ({ colors }) => ({

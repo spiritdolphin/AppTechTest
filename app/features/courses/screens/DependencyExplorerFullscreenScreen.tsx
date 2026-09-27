@@ -136,6 +136,12 @@ export function DependencyExplorerFullscreenScreen({
                       termCode,
                     })
                   }
+                  onOpenMoreGraph={(prerequisiteCode) =>
+                    navigation.push("DependencyExplorerFullscreen", {
+                      courseCode: prerequisiteCode,
+                      termCode,
+                    })
+                  }
                   termName={termName}
                   variant="detailed"
                 />
