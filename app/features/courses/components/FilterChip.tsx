@@ -4,14 +4,20 @@ import { Text } from "@/components/Text"
 import { useAppTheme } from "@/theme/context"
 import type { ThemedStyle } from "@/theme/types"
 
+import { FilledTriangle } from "./FilledTriangle"
+
 interface FilterChipProps {
   accessibilityLabel: string
   label: string
   onPress: () => void
+  testID?: string
 }
 
-export function FilterChip({ accessibilityLabel, label, onPress }: FilterChipProps) {
-  const { themed } = useAppTheme()
+export function FilterChip({ accessibilityLabel, label, onPress, testID }: FilterChipProps) {
+  const {
+    themed,
+    theme: { colors },
+  } = useAppTheme()
 
   return (
     <Pressable
@@ -19,9 +25,14 @@ export function FilterChip({ accessibilityLabel, label, onPress }: FilterChipPro
       accessibilityRole="button"
       onPress={onPress}
       style={({ pressed }) => [themed($chip), pressed && $pressed]}
+      testID={testID}
     >
       <Text text={label} size="xs" weight="semiBold" numberOfLines={1} style={$label} />
-      <Text text="⌄" size="sm" accessibilityElementsHidden importantForAccessibility="no" />
+      <FilledTriangle
+        color={colors.text}
+        direction="down"
+        testID={testID ? `${testID}-triangle` : undefined}
+      />
     </Pressable>
   )
 }
@@ -36,10 +47,12 @@ const $chip: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
   gap: spacing.xxs,
   minHeight: 44,
   paddingHorizontal: spacing.md,
+  width: "100%",
 })
 
 const $label: TextStyle = {
-  flexShrink: 1,
+  flex: 1,
+  minWidth: 0,
 }
 
 const $pressed: ViewStyle = {

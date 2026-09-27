@@ -3,6 +3,7 @@ import { LayoutChangeEvent, Pressable, TextStyle, View, ViewStyle } from "react-
 import Svg, { Path } from "react-native-svg"
 
 import { Text } from "@/components/Text"
+import { colors as lightColors } from "@/theme/colors"
 import { useAppTheme } from "@/theme/context"
 import type { ThemedStyle } from "@/theme/types"
 
@@ -346,7 +347,7 @@ function DetailedPrePrerequisiteItem({
           style={({ pressed }) => [$moreIndicatorRow, pressed && $pressed]}
           testID={`dependency-more-${item.courseCode}`}
         >
-          <View style={themed($morePill)}>
+          <View style={themed($morePill)} testID={`dependency-more-pill-${item.courseCode}`}>
             <Text
               accessibilityElementsHidden
               importantForAccessibility="no"
@@ -1109,10 +1110,10 @@ const $moreIndicatorRow: ViewStyle = {
   minWidth: 44,
 }
 
-const $morePill: ThemedStyle<ViewStyle> = ({ colors }) => ({
+const $morePill: ThemedStyle<ViewStyle> = () => ({
   alignItems: "center",
-  backgroundColor: colors.palette.accent100,
-  borderColor: colors.border,
+  backgroundColor: lightColors.palette.accent100,
+  borderColor: lightColors.border,
   borderRadius: 10,
   borderWidth: 1,
   height: 64,
@@ -1120,8 +1121,8 @@ const $morePill: ThemedStyle<ViewStyle> = ({ colors }) => ({
   width: 24,
 })
 
-const $moreLabel: ThemedStyle<TextStyle> = ({ colors }) => ({
-  color: colors.textDim,
+const $moreLabel: ThemedStyle<TextStyle> = () => ({
+  color: lightColors.textDim,
   letterSpacing: 0.5,
   lineHeight: 12,
   textAlign: "center",

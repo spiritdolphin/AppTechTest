@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   FlatList,
   ListRenderItem,
+  Pressable,
   TextStyle,
   View,
   ViewStyle,
@@ -18,6 +19,7 @@ import { useAppTheme } from "@/theme/context"
 import type { ThemedStyle } from "@/theme/types"
 
 import { CourseCard } from "../components/CourseCard"
+import { FilledTriangle } from "../components/FilledTriangle"
 import { FilterChip } from "../components/FilterChip"
 import { SelectionOption, SelectionSheet } from "../components/SelectionSheet"
 import { courseRepository } from "../data/generatedCourseRepository"
@@ -25,7 +27,7 @@ import { catalogueFilterReducer } from "../domain/catalogueFilters"
 import type { CatalogueCourse, CatalogueFile } from "../domain/types"
 import { searchCourses } from "../utils/searchCourses"
 
-type OpenSheet = "semester" | "department" | undefined
+type OpenSheet = "semester" | "department" | "theme" | undefined
 
 export function CourseCatalogueScreen({
   navigation,
@@ -33,6 +35,8 @@ export function CourseCatalogueScreen({
   const {
     themed,
     theme: { colors },
+    themeContextOverride,
+    setThemeContextOverride,
   } = useAppTheme()
   const semesters = courseRepository.getSemesters()
   const [filters, dispatchFilters] = useReducer(catalogueFilterReducer, {
@@ -162,24 +166,38 @@ export function CourseCatalogueScreen({
       contentContainerStyle={themed($screenContent)}
     >
       <View style={themed($header)}>
-        <Text tx="courseCatalogue:eyebrow" size="xs" weight="semiBold" style={themed($eyebrow)} />
+        <View style={themed($headerTopRow)}>
+          <Text tx="courseCatalogue:eyebrow" size="xs" weight="semiBold" style={themed($eyebrow)} />
+          <Pressable
+            accessibilityLabel={translate("courseCatalogue:selectTheme")}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: openSheet === "theme" }}
+            onPress={() => setOpenSheet("theme")}
+            style={({ pressed }) => [themed($themeButton), pressed && $pressed]}
+            testID="catalogue-theme-button"
+          >
+            <Text tx="courseCatalogue:themeButton" size="xs" weight="semiBold" />
+            <FilledTriangle color={colors.text} direction="down" />
+          </Pressable>
+        </View>
         <Text tx="courseCatalogue:title" preset="heading" />
-        <Text tx="courseCatalogue:subtitle" size="sm" style={themed($secondaryText)} />
       </View>
 
       <View style={$filterRow}>
-        <View style={$semesterChip}>
+        <View style={$filterCell} testID="catalogue-semester-filter-cell">
           <FilterChip
             accessibilityLabel={translate("courseCatalogue:selectSemester")}
             label={selectedSemester?.termName ?? selectedTermCode}
             onPress={() => setOpenSheet("semester")}
+            testID="catalogue-semester-filter"
           />
         </View>
-        <View style={$departmentChip}>
+        <View style={$filterCell} testID="catalogue-department-filter-cell">
           <FilterChip
             accessibilityLabel={translate("courseCatalogue:selectDepartment")}
             label={selectedDepartment || translate("courseCatalogue:allDepartments")}
             onPress={() => setOpenSheet("department")}
+            testID="catalogue-department-filter"
           />
         </View>
       </View>
@@ -272,6 +290,20 @@ export function CourseCatalogueScreen({
         title={translate("courseCatalogue:departmentSheetTitle")}
         visible={openSheet === "department"}
       />
+      <SelectionSheet
+        onClose={() => setOpenSheet(undefined)}
+        onSelect={(value) =>
+          setThemeContextOverride(value === "light" || value === "dark" ? value : undefined)
+        }
+        options={[
+          { label: translate("courseCatalogue:themeSystem"), value: "system" },
+          { label: translate("courseCatalogue:themeLight"), value: "light" },
+          { label: translate("courseCatalogue:themeDark"), value: "dark" },
+        ]}
+        selectedValue={themeContextOverride ?? "system"}
+        title={translate("courseCatalogue:themeSheetTitle")}
+        visible={openSheet === "theme"}
+      />
     </Screen>
   )
 }
@@ -287,6 +319,25 @@ const $screenContent: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
 const $header: ThemedStyle<ViewStyle> = ({ spacing }) => ({
   gap: spacing.xxs,
   marginBottom: spacing.md,
+})
+
+const $headerTopRow: ThemedStyle<ViewStyle> = ({ spacing }) => ({
+  alignItems: "center",
+  flexDirection: "row",
+  gap: spacing.sm,
+  justifyContent: "space-between",
+})
+
+const $themeButton: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
+  alignItems: "center",
+  backgroundColor: colors.palette.neutral100,
+  borderColor: colors.border,
+  borderRadius: 16,
+  borderWidth: 1,
+  flexDirection: "row",
+  gap: spacing.xs,
+  minHeight: 44,
+  paddingHorizontal: spacing.sm,
 })
 
 const $eyebrow: ThemedStyle<TextStyle> = ({ colors }) => ({
@@ -308,12 +359,13 @@ const $filterRow: ViewStyle = {
   marginBottom: 12,
 }
 
-const $semesterChip: ViewStyle = {
-  flex: 1.25,
+const $filterCell: ViewStyle = {
+  flex: 1,
+  minWidth: 0,
 }
 
-const $departmentChip: ViewStyle = {
-  flex: 1,
+const $pressed: ViewStyle = {
+  opacity: 0.72,
 }
 
 const $searchInput: ThemedStyle<ViewStyle> = ({ colors }) => ({

@@ -230,6 +230,18 @@ describe("CourseDetailsScreen", () => {
     expect(screen.getByText("CSE | COMP 1021")).toBeTruthy()
     expect(screen.getByText("3 credits")).toBeTruthy()
     expect(screen.getByText("Description for new.")).toBeTruthy()
+    const backTriangle = screen
+      .UNSAFE_getAllByProps({ testID: "details-back-triangle" })
+      .find((candidate) => Array.isArray(candidate.props.style))
+    const semesterTriangle = screen
+      .UNSAFE_getAllByProps({ testID: "details-semester-triangle" })
+      .find((candidate) => Array.isArray(candidate.props.style))
+    expect(backTriangle?.props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ borderRightWidth: 8 })]),
+    )
+    expect(semesterTriangle?.props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ borderTopWidth: 7 })]),
+    )
     expect(screen.queryByText("CWB Campus")).toBeNull()
     expect(screen.getByText("UG")).toBeTruthy()
     expect(screen.getByText(originalPrerequisite)).toBeTruthy()

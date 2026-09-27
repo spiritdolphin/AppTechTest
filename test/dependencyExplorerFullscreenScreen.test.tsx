@@ -12,6 +12,7 @@ import type {
 import { DependencyExplorerFullscreenScreen } from "../app/features/courses/screens/DependencyExplorerFullscreenScreen"
 import { connectorGutterWidth } from "../app/features/courses/utils/dependencyConnectorPath"
 import { colors } from "../app/theme/colors"
+import { colors as darkColors } from "../app/theme/colorsDark"
 import { ThemeProvider } from "../app/theme/context"
 
 jest.mock("@react-navigation/native", () => {
@@ -99,6 +100,7 @@ function renderFullscreen(
   repository: CourseRepository,
   courseCode = "COMP 4000",
   graphHistory?: string[],
+  themeMode?: "light" | "dark",
 ) {
   const navigation = {
     goBack: jest.fn(),
@@ -109,7 +111,7 @@ function renderFullscreen(
   }
   const screen = render(
     <SafeAreaProvider initialMetrics={initialMetrics}>
-      <ThemeProvider>
+      <ThemeProvider initialContext={themeMode}>
         <DependencyExplorerFullscreenScreen
           navigation={navigation as never}
           repository={repository}
@@ -393,6 +395,39 @@ describe("DependencyExplorerFullscreenScreen", () => {
       parentCourseCode: "COMP 4000",
       termCode: "2610",
     })
+  })
+
+  test("keeps the More control in light-theme colors on a dark graph", async () => {
+    const repository = repositoryWith(() =>
+      prerequisites({
+        "COMP 4000": {
+          originalText: "COMP 3000",
+          referencedCourseCodes: ["COMP 3000"],
+        },
+        "COMP 3000": {
+          originalText: "MATH 2000",
+          referencedCourseCodes: ["MATH 2000"],
+        },
+        "MATH 2000": {
+          originalText: "PHYS 1000",
+          referencedCourseCodes: ["PHYS 1000"],
+        },
+      }),
+    )
+    const { screen } = renderFullscreen(repository, "COMP 4000", undefined, "dark")
+
+    const pill = await screen.findByTestId("dependency-more-pill-MATH 2000")
+    expect(screen.getByTestId("dependency-graph")).toHaveStyle({
+      backgroundColor: darkColors.palette.neutral100,
+    })
+    expect(pill).toHaveStyle({
+      backgroundColor: colors.palette.accent100,
+      borderColor: colors.border,
+    })
+    const label = screen
+      .UNSAFE_getAllByProps({ testID: "dependency-more-label-MATH 2000" })
+      .find((candidate) => candidate.props.style)
+    expect(label?.props.style).toEqual(expect.objectContaining({ color: colors.textDim }))
   })
 
   test("uses equal, screen-bounded columns when prerequisites have no earlier courses", async () => {

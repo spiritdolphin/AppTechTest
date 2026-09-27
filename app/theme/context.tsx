@@ -33,6 +33,7 @@ export type ThemeContextType = {
   setThemeContextOverride: (newTheme: ThemeContextModeT) => void
   theme: Theme
   themeContext: ImmutableThemeContextModeT
+  themeContextOverride: ThemeContextModeT
   themed: ThemedFnT
 }
 
@@ -59,6 +60,8 @@ export const ThemeProvider: FC<PropsWithChildren<ThemeProviderProps>> = ({
   const systemColorScheme = useColorScheme()
   // Our saved theme context: can be "light", "dark", or undefined (system theme)
   const [themeScheme, setThemeScheme] = useMMKVString("ignite.themeScheme", storage)
+  const themeContextOverride: ThemeContextModeT =
+    themeScheme === "light" || themeScheme === "dark" ? themeScheme : undefined
 
   /**
    * This function is used to set the theme context and is exported from the useAppTheme() hook.
@@ -79,9 +82,10 @@ export const ThemeProvider: FC<PropsWithChildren<ThemeProviderProps>> = ({
    * systemColorScheme is the value from the device. If undefined, we fall back to "light"
    */
   const themeContext: ImmutableThemeContextModeT = useMemo(() => {
-    const t = initialContext || themeScheme || (!!systemColorScheme ? systemColorScheme : "light")
+    const t =
+      initialContext || themeContextOverride || (!!systemColorScheme ? systemColorScheme : "light")
     return t === "dark" ? "dark" : "light"
-  }, [initialContext, themeScheme, systemColorScheme])
+  }, [initialContext, themeContextOverride, systemColorScheme])
 
   const navigationTheme: NavTheme = useMemo(() => {
     switch (themeContext) {
@@ -125,6 +129,7 @@ export const ThemeProvider: FC<PropsWithChildren<ThemeProviderProps>> = ({
     navigationTheme,
     theme,
     themeContext,
+    themeContextOverride,
     setThemeContextOverride,
     themed,
   }

@@ -11,6 +11,7 @@ import type { ThemedStyle } from "@/theme/types"
 import { Accordion } from "../components/Accordion"
 import { formatCredits } from "../components/CourseCard"
 import { DependencyGraphView } from "../components/DependencyGraphView"
+import { FilledTriangle } from "../components/FilledTriangle"
 import { SelectionOption, SelectionSheet } from "../components/SelectionSheet"
 import { courseRepository } from "../data/generatedCourseRepository"
 import type { CourseRepository } from "../data/repository"
@@ -191,7 +192,12 @@ export function CourseDetailsScreen({
         onPress={navigation.goBack}
         style={({ pressed }) => [themed($backButton), pressed && $pressed]}
       >
-        <Text text="‹" size="xl" style={themed($backIcon)} />
+        <FilledTriangle
+          color={colors.tint}
+          direction="left"
+          style={themed($backIcon)}
+          testID="details-back-triangle"
+        />
         <Text text={parentCourseCode ? "Back" : "Catalogue"} weight="semiBold" />
       </Pressable>
 
@@ -240,7 +246,11 @@ export function CourseDetailsScreen({
                 <Text text="SEMESTER" size="xxs" weight="semiBold" style={themed($eyebrow)} />
                 <Text text={selectedSemester?.termName ?? selectedTermCode} weight="semiBold" />
               </View>
-              <Text text="⌄" size="lg" accessibilityElementsHidden importantForAccessibility="no" />
+              <FilledTriangle
+                color={colors.text}
+                direction="down"
+                testID="details-semester-triangle"
+              />
             </Pressable>
             {!!availabilityError && (
               <View style={themed($availabilityError)}>
@@ -433,8 +443,7 @@ const $backButton: ThemedStyle<ViewStyle> = ({ spacing }) => ({
   paddingRight: spacing.sm,
 })
 
-const $backIcon: ThemedStyle<TextStyle> = ({ colors, spacing }) => ({
-  color: colors.tint,
+const $backIcon: ThemedStyle<ViewStyle> = ({ spacing }) => ({
   marginRight: spacing.xxs,
 })
 

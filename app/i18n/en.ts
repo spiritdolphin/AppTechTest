@@ -20,7 +20,12 @@ const en = {
   courseCatalogue: {
     eyebrow: "COURSE CATALOGUE",
     title: "UST Course Explorer",
-    subtitle: "Browse HKUST courses and understand their prerequisites.",
+    themeButton: "Theme",
+    selectTheme: "Choose appearance",
+    themeSheetTitle: "Appearance",
+    themeSystem: "System",
+    themeLight: "Light",
+    themeDark: "Dark",
     searchPlaceholder: "Search course code or title...",
     selectSemester: "Select semester",
     selectDepartment: "Select department",
