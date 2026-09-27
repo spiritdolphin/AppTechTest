@@ -403,6 +403,13 @@ describe("DependencyExplorerFullscreenScreen", () => {
     expect(screen.getByTestId("dependency-operator-root-0-1")).toHaveTextContent("OR")
     expect(screen.getByTestId("pre-prerequisite-operator-root-0-0-pre-1")).toHaveTextContent("OR")
 
+    const groupedCourseCode = within(screen.getByTestId("dependency-node-MATH 2000")).getByText(
+      "MATH 2000",
+    )
+    expect(groupedCourseCode).toHaveStyle({ fontSize: 16, width: "100%" })
+    expect(groupedCourseCode).toHaveProp("numberOfLines", 2)
+    expect(groupedCourseCode.props.adjustsFontSizeToFit).toBeUndefined()
+
     const prePrerequisiteColumn = screen.getByTestId("pre-prerequisite-column")
     const compPrePrerequisites = screen.getByTestId("pre-prerequisite-block-root-0-0")
     const prerequisiteTree = screen.getByTestId("detailed-prerequisite-tree")

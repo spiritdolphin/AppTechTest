@@ -158,9 +158,7 @@ function CourseNode({ item, onOpenCourse, termName, variant }: CourseNodeProps) 
       testID={`dependency-node-${item.courseCode}`}
     >
       <Text
-        adjustsFontSizeToFit
-        minimumFontScale={0.9}
-        numberOfLines={1}
+        numberOfLines={2}
         text={item.courseCode}
         size="sm"
         weight="bold"
@@ -1100,6 +1098,7 @@ const $unavailableNode: ThemedStyle<ViewStyle> = ({ colors }) => ({
 const $courseCode: ThemedStyle<TextStyle> = ({ colors }) => ({
   color: colors.tint,
   textAlign: "center",
+  width: "100%",
 })
 
 const $courseTitle: ThemedStyle<TextStyle> = ({ colors }) => ({
