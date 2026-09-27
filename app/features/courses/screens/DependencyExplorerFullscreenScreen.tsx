@@ -20,7 +20,12 @@ type DependencyExplorerFullscreenScreenProps =
     repository?: CourseRepository
   }
 
-export function DependencyExplorerFullscreenScreen({
+export function DependencyExplorerFullscreenScreen(props: DependencyExplorerFullscreenScreenProps) {
+  const { courseCode, termCode } = props.route.params
+  return <DependencyExplorerFullscreenContent key={`${termCode}:${courseCode}`} {...props} />
+}
+
+function DependencyExplorerFullscreenContent({
   navigation,
   repository = courseRepository,
   route,
@@ -30,7 +35,9 @@ export function DependencyExplorerFullscreenScreen({
     theme: { colors, spacing },
   } = useAppTheme()
   const insets = useSafeAreaInsets()
-  const { courseCode, termCode } = route.params
+  const { courseCode, graphHistory = [], termCode } = route.params
+  const previousGraphCode = graphHistory[graphHistory.length - 1]
+  const detailsCourseCode = graphHistory[0] ?? courseCode
   const semester = repository.getSemester(termCode)
   const termName = semester?.termName ?? termCode
   const { graph, isLoading, loadError, retry } = useDependencyGraph({
@@ -66,15 +73,34 @@ export function DependencyExplorerFullscreenScreen({
             <Text text={termName} size="xs" style={themed($secondaryText)} />
           </View>
           <Pressable
-            accessibilityLabel="Close fullscreen dependency graph"
+            accessibilityLabel={
+              previousGraphCode
+                ? `Back to fullscreen dependency graph for ${previousGraphCode}`
+                : "Close fullscreen dependency graph"
+            }
             accessibilityRole="button"
             hitSlop={spacing.xxs}
-            onPress={navigation.goBack}
+            onPress={() => {
+              if (previousGraphCode) {
+                navigation.setParams({
+                  courseCode: previousGraphCode,
+                  graphHistory: graphHistory.slice(0, -1),
+                  termCode,
+                })
+              } else {
+                navigation.goBack()
+              }
+            }}
             style={({ pressed }) => [themed($closeButton), pressed && $pressed]}
             testID="dependency-fullscreen-close"
           >
-            <Text text="Close" size="xxs" weight="semiBold" />
-            <Text text="×" size="sm" accessibilityElementsHidden importantForAccessibility="no" />
+            <Text text={previousGraphCode ? "Back" : "Close"} size="xxs" weight="semiBold" />
+            <Text
+              text={previousGraphCode ? "‹" : "×"}
+              size="sm"
+              accessibilityElementsHidden
+              importantForAccessibility="no"
+            />
           </Pressable>
         </View>
 
@@ -132,13 +158,14 @@ export function DependencyExplorerFullscreenScreen({
                   onOpenCourse={(prerequisiteCode) =>
                     navigation.replace("CourseDetails", {
                       courseCode: prerequisiteCode,
-                      parentCourseCode: courseCode,
+                      parentCourseCode: detailsCourseCode,
                       termCode,
                     })
                   }
                   onOpenMoreGraph={(prerequisiteCode) =>
-                    navigation.push("DependencyExplorerFullscreen", {
+                    navigation.setParams({
                       courseCode: prerequisiteCode,
+                      graphHistory: [...graphHistory, courseCode],
                       termCode,
                     })
                   }
