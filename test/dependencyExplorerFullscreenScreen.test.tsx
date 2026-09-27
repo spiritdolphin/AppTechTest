@@ -10,6 +10,7 @@ import type {
   SemestersFile,
 } from "../app/features/courses/domain/types"
 import { DependencyExplorerFullscreenScreen } from "../app/features/courses/screens/DependencyExplorerFullscreenScreen"
+import { connectorGutterWidth } from "../app/features/courses/utils/dependencyConnectorPath"
 import { colors } from "../app/theme/colors"
 import { ThemeProvider } from "../app/theme/context"
 
@@ -338,6 +339,48 @@ describe("DependencyExplorerFullscreenScreen", () => {
       expect.arrayContaining([expect.objectContaining({ width: columnWidth })]),
     )
     expect(columnWidth * 2 + 40).toBe(700)
+  })
+
+  test("widens the connector gutter for several courses with earlier prerequisites", async () => {
+    const repository = repositoryWith(
+      () =>
+        prerequisites({
+          "COMP 4000": {
+            originalText: "COMP 3000 OR MATH 2000 OR PHYS 1000",
+            referencedCourseCodes: ["COMP 3000", "MATH 2000", "PHYS 1000"],
+          },
+          "COMP 3000": {
+            originalText: "MATH 1000",
+            referencedCourseCodes: ["MATH 1000"],
+          },
+          "MATH 2000": {
+            originalText: "MATH 1001",
+            referencedCourseCodes: ["MATH 1001"],
+          },
+          "PHYS 1000": {
+            originalText: "MATH 1002",
+            referencedCourseCodes: ["MATH 1002"],
+          },
+        }),
+      ["COMP 4000", "COMP 3000", "MATH 2000", "PHYS 1000", "MATH 1000", "MATH 1001", "MATH 1002"],
+    )
+    const { screen } = renderFullscreen(repository)
+
+    expect(await screen.findByTestId("pre-prerequisite-block-root-0")).toBeTruthy()
+    fireEvent(screen.getByTestId("detailed-columns-container"), "layout", {
+      nativeEvent: { layout: { width: 700, height: 300 } },
+    })
+
+    const connectorWidth = connectorGutterWidth(3)
+    const columnWidth = (700 - connectorWidth - 40) / 3
+    expect(screen.getByTestId("pre-prerequisite-connector-gutter")).toHaveStyle({
+      width: connectorWidth,
+    })
+    expect(screen.getByTestId("pre-prerequisite-column")).toHaveStyle({ width: columnWidth })
+    expect(screen.getByTestId("detailed-prerequisite-tree")).toHaveStyle({ width: columnWidth })
+    expect(screen.getByTestId("dependency-current-course-node")).toHaveStyle({
+      width: columnWidth,
+    })
   })
 
   test("keeps empty prerequisites readable and equal in width to the current course", async () => {

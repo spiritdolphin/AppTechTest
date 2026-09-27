@@ -30,7 +30,10 @@ describe("CourseCatalogueScreen", () => {
     expect(screen.getByText("3,928 courses")).toBeTruthy()
     expect(screen.getByText("ACCT 1010")).toBeTruthy()
 
-    fireEvent.changeText(screen.getByTestId("course-search-input"), "comp-1021")
+    const searchInput = screen.getByTestId("course-search-input")
+    expect(searchInput).toHaveProp("textAlignVertical", "center")
+    expect(searchInput).toHaveStyle({ alignSelf: "center" })
+    fireEvent.changeText(searchInput, "comp-1021")
 
     await waitFor(() => expect(screen.getByText("COMP 1021")).toBeTruthy())
     expect(screen.queryByText("ACCT 1010")).toBeNull()

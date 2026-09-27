@@ -160,6 +160,7 @@ export const TextField = forwardRef(function TextField(props: TextFieldProps, re
 
   const $inputStyles: ThemedStyleArray<TextStyle> = [
     $inputStyle,
+    !TextInputProps.multiline && { alignSelf: "center" },
     disabled && { color: colors.textDim },
     isRTL && { textAlign: "right" as TextStyle["textAlign"] },
     TextInputProps.multiline && { height: "auto" },
@@ -214,7 +215,7 @@ export const TextField = forwardRef(function TextField(props: TextFieldProps, re
         <TextInput
           ref={input}
           underlineColorAndroid={colors.transparent}
-          textAlignVertical="top"
+          textAlignVertical={TextInputProps.multiline ? "top" : "center"}
           placeholder={placeholderContent}
           placeholderTextColor={colors.textDim}
           {...TextInputProps}

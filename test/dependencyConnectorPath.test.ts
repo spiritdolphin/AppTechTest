@@ -1,6 +1,8 @@
 import {
   alignedNodeTop,
   buildOrthogonalConnectorPath,
+  connectorGutterWidth,
+  connectorLaneX,
   connectorTipBeforeBoundary,
 } from "../app/features/courses/utils/dependencyConnectorPath"
 
@@ -21,6 +23,25 @@ describe("buildOrthogonalConnectorPath", () => {
     expect(buildOrthogonalConnectorPath({ x: 100, y: 100 }, { x: 180, y: 40 })).toBe(
       "M 100 100 H 128.5 Q 136.5 100 136.5 92 V 48 Q 136.5 40 144.5 40 H 173",
     )
+  })
+
+  test("routes parallel connectors through distinct lanes before their arrowheads", () => {
+    const sourceX = 100
+    const gutterWidth = connectorGutterWidth(4)
+    const boundaryX = sourceX + gutterWidth
+    const tip = connectorTipBeforeBoundary(boundaryX, 100)
+    const lanes = [0, 1, 2, 3].map((index) => connectorLaneX(sourceX, index))
+
+    expect(gutterWidth).toBe(58)
+    expect(new Set(lanes).size).toBe(4)
+    lanes.forEach((bendX) => {
+      expect(bendX).toBeGreaterThan(sourceX)
+      expect(bendX).toBeLessThan(tip.x - 7)
+    })
+    expect(buildOrthogonalConnectorPath({ x: sourceX, y: 40 }, tip, { bendX: lanes[3] })).toContain(
+      `Q ${lanes[3]} 40`,
+    )
+    expect(connectorGutterWidth(1)).toBe(40)
   })
 
   test("stops the arrow outside the prerequisite frame", () => {

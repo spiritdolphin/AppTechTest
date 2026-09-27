@@ -15,6 +15,8 @@ import type {
 import {
   alignedNodeTop,
   buildOrthogonalConnectorPath,
+  connectorGutterWidth,
+  connectorLaneX,
   connectorTipBeforeBoundary,
   type ConnectorPoint,
 } from "../utils/dependencyConnectorPath"
@@ -71,17 +73,21 @@ function ArrowConnector({ compact = false, testID = "dependency-arrow" }: ArrowC
 }
 
 interface ConnectorPathsProps {
+  bendX?: number
   color: string
   source: ConnectorPoint
   testID: string
   tip: ConnectorPoint
 }
 
-function ConnectorPaths({ color, source, testID, tip }: ConnectorPathsProps) {
+function ConnectorPaths({ bendX, color, source, testID, tip }: ConnectorPathsProps) {
   return (
     <Fragment>
       <Path
-        d={buildOrthogonalConnectorPath(source, tip, { arrowSize: CONNECTOR_ARROW_SIZE })}
+        d={buildOrthogonalConnectorPath(source, tip, {
+          arrowSize: CONNECTOR_ARROW_SIZE,
+          bendX,
+        })}
         fill="none"
         stroke={color}
         strokeLinecap="round"
@@ -462,6 +468,7 @@ interface ConnectorAnchors {
 
 interface DetailedPrerequisiteGraphProps {
   columnWidth: number
+  connectorWidth: number
   item: ResolvedDependencyItem
   onFirstCourseLayout: () => void
   onOpenCourse: (courseCode: string) => void
@@ -472,6 +479,7 @@ interface DetailedPrerequisiteGraphProps {
 
 function DetailedPrerequisiteGraph({
   columnWidth,
+  connectorWidth,
   item,
   onFirstCourseLayout,
   onOpenCourse,
@@ -484,6 +492,10 @@ function DetailedPrerequisiteGraph({
     theme: { colors },
   } = useAppTheme()
   const entries = useMemo(() => collectDetailedCourseEntries(item), [item])
+  const connectorEntries = useMemo(
+    () => entries.filter(({ item: course }) => !!course.prerequisites),
+    [entries],
+  )
   const canvasRef = useRef<View>(null)
   const sourceRefs = useRef(new Map<string, View>())
   const targetRefs = useRef(new Map<string, View>())
@@ -531,11 +543,11 @@ function DetailedPrerequisiteGraph({
   )
 
   const measureAllAnchors = useCallback(() => {
-    entries.forEach(({ item: course, path }) => {
+    entries.forEach(({ path }) => {
       measureAnchor(path, "target")
-      if (course.prerequisites) measureAnchor(path, "source")
     })
-  }, [entries, measureAnchor])
+    connectorEntries.forEach(({ path }) => measureAnchor(path, "source"))
+  }, [connectorEntries, entries, measureAnchor])
 
   const handleCanvasLayout = useCallback(
     ({ nativeEvent: { layout } }: LayoutChangeEvent) => {
@@ -575,7 +587,7 @@ function DetailedPrerequisiteGraph({
               style={[themed($independentPrePrerequisiteColumn), { width: columnWidth }]}
               testID="pre-prerequisite-column"
             >
-              {entries.map(({ item: course, path }) =>
+              {connectorEntries.map(({ item: course, path }) =>
                 course.prerequisites ? (
                   <View
                     collapsable={false}
@@ -594,7 +606,7 @@ function DetailedPrerequisiteGraph({
                 ) : null,
               )}
             </View>
-            <View style={$independentConnectorGutter} />
+            <View style={{ width: connectorWidth }} testID="pre-prerequisite-connector-gutter" />
           </Fragment>
         )}
         <View
@@ -628,7 +640,7 @@ function DetailedPrerequisiteGraph({
           testID="dependency-connector-overlay"
           width={canvasSize.width}
         >
-          {entries.map(({ item: course, path }) => {
+          {connectorEntries.map(({ item: course, path }, laneIndex) => {
             const source = anchors[path]?.source
             const target = anchors[path]?.target
             if (!course.prerequisites || !source || !target || target.x <= source.x) return null
@@ -637,6 +649,7 @@ function DetailedPrerequisiteGraph({
 
             return (
               <ConnectorPaths
+                bendX={connectorLaneX(source.x, laneIndex)}
                 color={colors.tint}
                 key={path}
                 source={source}
@@ -667,19 +680,27 @@ function DetailedGraphColumns({ graph, onOpenCourse, termName }: DetailedGraphCo
   const [availableWidth, setAvailableWidth] = useState(0)
   const [firstCourseCenterY, setFirstCourseCenterY] = useState<number | undefined>()
   const [currentCourseHeight, setCurrentCourseHeight] = useState(76)
-  const showPrePrerequisites = useMemo(
+  const prePrerequisiteCount = useMemo(
     () =>
-      !!graph.prerequisites &&
-      collectDetailedCourseEntries(graph.prerequisites).some(({ item }) => !!item.prerequisites),
+      graph.prerequisites
+        ? collectDetailedCourseEntries(graph.prerequisites).filter(
+            ({ item }) => !!item.prerequisites,
+          ).length
+        : 0,
     [graph.prerequisites],
   )
+  const showPrePrerequisites = prePrerequisiteCount > 0
+  const prePrerequisiteConnectorWidth = connectorGutterWidth(prePrerequisiteCount)
   const columnCount = showPrePrerequisites ? 3 : 2
   const columnWidth = Math.max(
     0,
-    (availableWidth - (columnCount - 1) * DETAILED_CONNECTOR_WIDTH) / columnCount,
+    (availableWidth -
+      DETAILED_CONNECTOR_WIDTH -
+      (showPrePrerequisites ? prePrerequisiteConnectorWidth : 0)) /
+      columnCount,
   )
   const prerequisiteWidth = showPrePrerequisites
-    ? columnWidth * 2 + DETAILED_CONNECTOR_WIDTH
+    ? columnWidth * 2 + prePrerequisiteConnectorWidth
     : columnWidth
 
   const measureFirstCourse = useCallback(() => {
@@ -745,6 +766,7 @@ function DetailedGraphColumns({ graph, onOpenCourse, termName }: DetailedGraphCo
           ) : graph.prerequisites ? (
             <DetailedPrerequisiteGraph
               columnWidth={columnWidth}
+              connectorWidth={prePrerequisiteConnectorWidth}
               item={graph.prerequisites}
               onFirstCourseLayout={() => requestAnimationFrame(measureFirstCourse)}
               onOpenCourse={onOpenCourse}
@@ -1022,10 +1044,6 @@ const $independentPrePrerequisiteColumn: ThemedStyle<ViewStyle> = ({ spacing }) 
   gap: spacing.sm,
   minWidth: 0,
 })
-
-const $independentConnectorGutter: ViewStyle = {
-  width: DETAILED_CONNECTOR_WIDTH,
-}
 
 const $independentPrerequisiteTreeColumn: ViewStyle = {
   minWidth: 0,
