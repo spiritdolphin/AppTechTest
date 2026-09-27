@@ -47,6 +47,10 @@ function compactTermName(termName: string): string {
   return termName.replace(/^20(?=\d{2}-\d{2}\b)/, "")
 }
 
+function compactCourseCode(courseCode: string): string {
+  return courseCode.replace(/^(\S+)\s+(\S+)$/, "$1\n$2")
+}
+
 interface ArrowConnectorProps {
   compact?: boolean
   testID?: string
@@ -165,7 +169,7 @@ function CourseNode({ item, onOpenCourse, termName, variant }: CourseNodeProps) 
     >
       <Text
         numberOfLines={2}
-        text={item.courseCode}
+        text={variant === "compact" ? compactCourseCode(item.courseCode) : item.courseCode}
         size="sm"
         weight="bold"
         style={themed($courseCode)}

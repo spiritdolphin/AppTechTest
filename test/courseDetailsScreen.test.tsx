@@ -1,4 +1,4 @@
-import { fireEvent, render, waitFor } from "@testing-library/react-native"
+import { fireEvent, render, waitFor, within } from "@testing-library/react-native"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 
 import { CourseRepository } from "../app/features/courses/data/repository"
@@ -283,6 +283,30 @@ describe("CourseDetailsScreen", () => {
 
     fireEvent.press(screen.getByLabelText("Back to COMP 2011"))
     expect(navigation.goBack).toHaveBeenCalledTimes(1)
+  })
+
+  test("renders compact course codes on two lines at the separator", async () => {
+    const prerequisite = "COMP 1023 OR COMP 1028"
+    const { screen } = renderDetails(
+      createRepository(
+        { new: () => details("new", [courseDetail("new", { prerequisite })]) },
+        {
+          new: () =>
+            prerequisites("new", {
+              "COMP 1021": {
+                originalText: prerequisite,
+                referencedCourseCodes: ["COMP 1023", "COMP 1028"],
+              },
+            }),
+        },
+      ),
+    )
+
+    for (const courseCode of ["COMP 1023", "COMP 1028"]) {
+      const node = await screen.findByTestId(`dependency-node-${courseCode}`)
+      expect(within(node).getByText(courseCode.replace(" ", "\n"))).toHaveProp("numberOfLines", 2)
+      expect(node.props.accessibilityLabel).toContain(courseCode)
+    }
   })
 
   test("omits empty fields while retaining non-empty uncommon catalogue fields", async () => {
