@@ -2,6 +2,7 @@ import { CourseRepository } from "./repository"
 import type {
   CatalogueFile,
   DetailsFile,
+  LectureAvailabilityFile,
   PrerequisitesFile,
   SectionsFile,
   SemestersFile,
@@ -41,10 +42,22 @@ const sectionsLoaders = {
   "2610": () => require("../../../../generated/sections/2610.json") as SectionsFile,
 }
 
+const lectureAvailabilityLoaders = {
+  "2520": () =>
+    require("../../../../generated/sections/availability/2520.json") as LectureAvailabilityFile,
+  "2530": () =>
+    require("../../../../generated/sections/availability/2530.json") as LectureAvailabilityFile,
+  "2540": () =>
+    require("../../../../generated/sections/availability/2540.json") as LectureAvailabilityFile,
+  "2610": () =>
+    require("../../../../generated/sections/availability/2610.json") as LectureAvailabilityFile,
+}
+
 export const courseRepository = new CourseRepository({
   semestersFile,
   catalogueLoaders,
   detailsLoaders,
   prerequisitesLoaders,
   sectionsLoaders,
+  lectureAvailabilityLoaders,
 })

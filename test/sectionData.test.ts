@@ -1,4 +1,5 @@
 import type { SourceCourse } from "../scripts/course-data/types"
+import { buildLectureAvailability } from "../scripts/section-data/availability"
 import { buildSectionData, parseSourceClasses } from "../scripts/section-data/core"
 import type { SourceClass } from "../scripts/section-data/types"
 
@@ -42,6 +43,20 @@ const courses = [
 ] as SourceCourse[]
 
 describe("section data preprocessing", () => {
+  test("summarizes only lectures with known capacity and combines open state with remaining seats", () => {
+    const file = buildSectionData(courses, [
+      sourceClass(),
+      sourceClass({ section: "L2", capacity: 40, enroll: 40, open: true }),
+      sourceClass({ section: "L3", capacity: 40, enroll: 20, open: false }),
+      sourceClass({ section: "L4", capacity: 0, enroll: 0 }),
+      sourceClass({ section: "T1", type: "TUT" }),
+    ]).files.get("2610")!
+    expect(buildLectureAvailability(file)).toEqual({
+      schemaVersion: 1,
+      termCode: "2610",
+      byCourseId: { "000001": [true, false, false] },
+    })
+  })
   test("keeps the latest class snapshot, joins by term and id, and compacts meetings", () => {
     const result = buildSectionData(courses, [
       sourceClass({ enroll: 20 }),

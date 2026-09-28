@@ -8,6 +8,7 @@ import type { ThemedStyle } from "@/theme/types"
 interface AccordionProps extends PropsWithChildren {
   accessibilityLabel?: string
   initiallyExpanded?: boolean
+  compact?: boolean
   title: string
 }
 
@@ -15,6 +16,7 @@ export function Accordion({
   accessibilityLabel,
   children,
   initiallyExpanded = false,
+  compact = false,
   title,
 }: AccordionProps) {
   const { themed } = useAppTheme()
@@ -27,7 +29,7 @@ export function Accordion({
         accessibilityRole="button"
         accessibilityState={{ expanded }}
         onPress={() => setExpanded((value) => !value)}
-        style={({ pressed }) => [themed($header), pressed && $pressed]}
+        style={({ pressed }) => [themed($header), compact && $compactHeader, pressed && $pressed]}
       >
         <Text text={title} weight="semiBold" style={$title} />
         <Text
@@ -62,6 +64,8 @@ const $header: ThemedStyle<ViewStyle> = ({ spacing }) => ({
 const $title: TextStyle = {
   flex: 1,
 }
+
+const $compactHeader: ViewStyle = { minHeight: 44, paddingVertical: 4 }
 
 const $indicator: ThemedStyle<TextStyle> = ({ colors }) => ({
   color: colors.tint,

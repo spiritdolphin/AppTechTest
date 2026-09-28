@@ -9,8 +9,11 @@ import type { CatalogueCourse } from "../domain/types"
 
 interface CourseCardProps {
   course: CatalogueCourse
+  lectureAvailability?: readonly boolean[]
   onPress: () => void
 }
+
+const MAX_VISIBLE_LECTURES = 8
 
 function formatCreditValue(value: number): string {
   return Number.isInteger(value) ? value.toString() : value.toFixed(1).replace(/\.0$/, "")
@@ -24,12 +27,18 @@ export function formatCredits(minCredits: number, maxCredits: number): string {
   return `${formatCreditValue(minCredits)}–${formatCreditValue(maxCredits)} credits`
 }
 
-export const CourseCard = memo(function CourseCard({ course, onPress }: CourseCardProps) {
+export const CourseCard = memo(function CourseCard({
+  course,
+  lectureAvailability,
+  onPress,
+}: CourseCardProps) {
   const { themed } = useAppTheme()
+  const lectureCount = lectureAvailability?.length ?? 0
+  const availableCount = lectureAvailability?.filter(Boolean).length ?? 0
 
   return (
     <Pressable
-      accessibilityLabel={`${course.code}, ${course.title}, ${formatCredits(course.minCredits, course.maxCredits)}`}
+      accessibilityLabel={`${course.code}, ${course.title}, ${formatCredits(course.minCredits, course.maxCredits)}${lectureCount ? `, archived lecture snapshot: ${availableCount} of ${lectureCount} with seats` : ""}`}
       accessibilityRole="button"
       onPress={onPress}
       style={({ pressed }) => [themed($card), pressed && $pressedCard]}
@@ -42,11 +51,39 @@ export const CourseCard = memo(function CourseCard({ course, onPress }: CourseCa
         </View>
       </View>
       <Text text={course.title} size="sm" numberOfLines={2} style={$title} />
-      <Text
-        text={formatCredits(course.minCredits, course.maxCredits)}
-        size="xs"
-        style={themed($credits)}
-      />
+      <View style={$bottomRow}>
+        <View style={themed($creditsBadge)}>
+          <Text
+            text={formatCredits(course.minCredits, course.maxCredits)}
+            size="xs"
+            style={themed($credits)}
+          />
+        </View>
+        {!!lectureCount && (
+          <View
+            style={$availabilityRow}
+            accessibilityElementsHidden
+            importantForAccessibility="no"
+            testID={`lecture-availability-${course.code}`}
+          >
+            <Text text="Avail" size="xxs" style={themed($credits)} />
+            {lectureAvailability?.slice(0, MAX_VISIBLE_LECTURES).map((hasSeats, index) => (
+              <View
+                key={index}
+                style={themed(hasSeats ? $availableDot : $fullDot)}
+                testID={`lecture-dot-${course.code}-${index}`}
+              />
+            ))}
+            {lectureCount > MAX_VISIBLE_LECTURES && (
+              <Text
+                text={`+${lectureCount - MAX_VISIBLE_LECTURES}`}
+                size="xxs"
+                style={themed($credits)}
+              />
+            )}
+          </View>
+        )}
+      </View>
     </Pressable>
   )
 })
@@ -84,6 +121,32 @@ const $title: TextStyle = {
 
 const $credits: ThemedStyle<TextStyle> = ({ colors }) => ({
   color: colors.textDim,
+})
+
+const $bottomRow: ViewStyle = {
+  alignItems: "center",
+  flexDirection: "row",
+  flexWrap: "wrap",
+  gap: 8,
+}
+const $creditsBadge: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
+  backgroundColor: colors.palette.neutral200,
+  borderRadius: 10,
+  paddingHorizontal: spacing.xs,
+  paddingVertical: spacing.xxs,
+})
+const $availabilityRow: ViewStyle = { alignItems: "center", flexDirection: "row", gap: 5 }
+const $availableDot: ThemedStyle<ViewStyle> = ({ colors }) => ({
+  backgroundColor: colors.success,
+  borderRadius: 4,
+  height: 8,
+  width: 8,
+})
+const $fullDot: ThemedStyle<ViewStyle> = ({ colors }) => ({
+  backgroundColor: colors.statusClosed,
+  borderRadius: 4,
+  height: 8,
+  width: 8,
 })
 
 const $pressedCard: ViewStyle = {

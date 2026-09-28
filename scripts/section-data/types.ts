@@ -82,6 +82,12 @@ export interface SectionsFile {
   sectionsByCourseId: Record<string, CourseSection[]>
 }
 
+export interface LectureAvailabilityFile {
+  schemaVersion: number
+  termCode: string
+  byCourseId: Record<string, boolean[]>
+}
+
 export interface TermSectionStats {
   termCode: string
   sourceRows: number

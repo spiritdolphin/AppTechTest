@@ -18,6 +18,7 @@
     "data:build": "tsx scripts/course-data/build.ts",
     "data:check": "tsx scripts/course-data/check.ts && tsx scripts/section-data/check.ts",
     "sections:build": "tsx scripts/section-data/build.ts",
+    "availability:build": "tsx scripts/section-data/regenerateAvailability.ts",
     "sections:check": "tsx scripts/section-data/check.ts",
     "depcruise": "depcruise app --config .dependency-cruiser.js",
     "depcruise:graph": "depcruise app --include-only \"^app\" --config .dependency-cruiser.js --output-type dot > app-dependency-graph.dot && dot -T svg app-dependency-graph.dot -o app-dependency-graph.svg && dot -T png app-dependency-graph.dot -o app-dependency-graph.png && rm app-dependency-graph.dot",

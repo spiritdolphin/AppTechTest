@@ -24,7 +24,7 @@ import { FilterChip } from "../components/FilterChip"
 import { SelectionOption, SelectionSheet } from "../components/SelectionSheet"
 import { courseRepository } from "../data/generatedCourseRepository"
 import { catalogueFilterReducer } from "../domain/catalogueFilters"
-import type { CatalogueCourse, CatalogueFile } from "../domain/types"
+import type { CatalogueCourse, CatalogueFile, LectureAvailabilityFile } from "../domain/types"
 import { searchCourses } from "../utils/searchCourses"
 
 type OpenSheet = "semester" | "department" | "theme" | undefined
@@ -46,6 +46,7 @@ export function CourseCatalogueScreen({
   })
   const { termCode: selectedTermCode, departmentCode: selectedDepartment, query } = filters
   const [catalogue, setCatalogue] = useState<CatalogueFile>()
+  const [lectureAvailability, setLectureAvailability] = useState<LectureAvailabilityFile>()
   const [loadError, setLoadError] = useState<string>()
   const [loadAttempt, setLoadAttempt] = useState(0)
   const [openSheet, setOpenSheet] = useState<OpenSheet>()
@@ -56,6 +57,7 @@ export function CourseCatalogueScreen({
   useEffect(() => {
     let active = true
     setCatalogue(undefined)
+    setLectureAvailability(undefined)
     setLoadError(undefined)
 
     courseRepository
@@ -68,6 +70,15 @@ export function CourseCatalogueScreen({
           setLoadError(error instanceof Error ? error.message : translate("courseCatalogue:error"))
         }
       })
+
+    courseRepository.loadLectureAvailability(selectedTermCode).then(
+      (loadedAvailability) => {
+        if (active) setLectureAvailability(loadedAvailability)
+      },
+      () => {
+        // Catalogue remains usable if the optional schedule snapshot cannot load.
+      },
+    )
 
     return () => {
       active = false
@@ -127,6 +138,11 @@ export function CourseCatalogueScreen({
     ({ item }) => (
       <CourseCard
         course={item}
+        lectureAvailability={
+          lectureAvailability?.termCode === selectedTermCode
+            ? lectureAvailability.byCourseId[item.id]
+            : undefined
+        }
         onPress={() =>
           navigation.navigate("CourseDetails", {
             courseCode: item.code,
@@ -135,7 +151,7 @@ export function CourseCatalogueScreen({
         }
       />
     ),
-    [navigation, selectedTermCode],
+    [lectureAvailability, navigation, selectedTermCode],
   )
 
   const listEmpty = useMemo(() => {

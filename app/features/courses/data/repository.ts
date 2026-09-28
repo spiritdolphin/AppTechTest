@@ -5,6 +5,7 @@ import type {
   CourseDetail,
   DepartmentSummary,
   DetailsFile,
+  LectureAvailabilityFile,
   PrerequisiteEntry,
   PrerequisitesFile,
   SectionsFile,
@@ -17,6 +18,8 @@ export type CatalogueLoader = () => CatalogueFile | Promise<CatalogueFile>
 export type DetailsLoader = () => DetailsFile | Promise<DetailsFile>
 export type PrerequisitesLoader = () => PrerequisitesFile | Promise<PrerequisitesFile>
 export type SectionsLoader = () => SectionsFile | Promise<SectionsFile>
+export type LectureAvailabilityLoader = () =>
+  LectureAvailabilityFile | Promise<LectureAvailabilityFile>
 
 export interface CourseRepositoryOptions {
   semestersFile: SemestersFile
@@ -24,6 +27,7 @@ export interface CourseRepositoryOptions {
   detailsLoaders: Record<string, DetailsLoader>
   prerequisitesLoaders: Record<string, PrerequisitesLoader>
   sectionsLoaders?: Record<string, SectionsLoader>
+  lectureAvailabilityLoaders?: Record<string, LectureAvailabilityLoader>
 }
 
 export class CourseRepository {
@@ -33,10 +37,12 @@ export class CourseRepository {
   private readonly detailsLoaders: Record<string, DetailsLoader>
   private readonly prerequisitesLoaders: Record<string, PrerequisitesLoader>
   private readonly sectionsLoaders?: Record<string, SectionsLoader>
+  private readonly lectureAvailabilityLoaders?: Record<string, LectureAvailabilityLoader>
   private readonly catalogueCache = new Map<string, Promise<CatalogueFile>>()
   private readonly detailsCache = new Map<string, Promise<DetailsFile>>()
   private readonly prerequisitesCache = new Map<string, Promise<PrerequisitesFile>>()
   private readonly sectionsCache = new Map<string, Promise<SectionsFile>>()
+  private readonly lectureAvailabilityCache = new Map<string, Promise<LectureAvailabilityFile>>()
 
   constructor({
     semestersFile,
@@ -44,6 +50,7 @@ export class CourseRepository {
     detailsLoaders,
     prerequisitesLoaders,
     sectionsLoaders,
+    lectureAvailabilityLoaders,
   }: CourseRepositoryOptions) {
     if (semestersFile.schemaVersion !== 1) {
       throw new Error(`Unsupported semester schema version: ${semestersFile.schemaVersion}`)
@@ -56,6 +63,7 @@ export class CourseRepository {
     this.detailsLoaders = detailsLoaders
     this.prerequisitesLoaders = prerequisitesLoaders
     this.sectionsLoaders = sectionsLoaders
+    this.lectureAvailabilityLoaders = lectureAvailabilityLoaders
 
     this.semesters.forEach(({ termCode }) => {
       if (!catalogueLoaders[termCode]) {
@@ -69,6 +77,9 @@ export class CourseRepository {
       }
       if (sectionsLoaders && !sectionsLoaders[termCode]) {
         throw new Error(`Missing sections loader for semester ${termCode}`)
+      }
+      if (lectureAvailabilityLoaders && !lectureAvailabilityLoaders[termCode]) {
+        throw new Error(`Missing lecture availability loader for semester ${termCode}`)
       }
     })
   }
@@ -181,6 +192,38 @@ export class CourseRepository {
     if (!this.sectionsLoaders) return []
     const sections = await this.loadSections(termCode)
     return sections.sectionsByCourseId[courseId] ?? []
+  }
+
+  loadLectureAvailability(termCode: string): Promise<LectureAvailabilityFile> {
+    const cached = this.lectureAvailabilityCache.get(termCode)
+    if (cached) return cached
+
+    const loader = this.lectureAvailabilityLoaders?.[termCode]
+    if (!loader)
+      return Promise.reject(new Error(`Unknown lecture availability semester: ${termCode}`))
+
+    const request = Promise.resolve()
+      .then(loader)
+      .then((availability) => {
+        if (availability.schemaVersion !== 1) {
+          throw new Error(
+            `Unsupported lecture availability schema version: ${availability.schemaVersion}`,
+          )
+        }
+        if (availability.termCode !== termCode) {
+          throw new Error(
+            `Lecture availability term mismatch: expected ${termCode}, got ${availability.termCode}`,
+          )
+        }
+        return availability
+      })
+      .catch((error: unknown) => {
+        this.lectureAvailabilityCache.delete(termCode)
+        throw error
+      })
+
+    this.lectureAvailabilityCache.set(termCode, request)
+    return request
   }
 
   loadPrerequisites(termCode: string): Promise<PrerequisitesFile> {

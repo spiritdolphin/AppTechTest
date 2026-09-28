@@ -1,3 +1,4 @@
+import { StyleSheet } from "react-native"
 import { fireEvent, render, waitFor } from "@testing-library/react-native"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 
@@ -79,6 +80,45 @@ describe("CourseCatalogueScreen", () => {
       courseCode: "ACCT 1010",
       termCode: "2610",
     })
+  })
+
+  test("shows archived lecture availability without showing dots for courses without lecture data", async () => {
+    const screen = render(
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <ThemeProvider>
+          <CourseCatalogueScreen navigation={{ navigate: jest.fn() } as never} />
+        </ThemeProvider>
+      </SafeAreaProvider>,
+    )
+    const noLectures = await screen.findByTestId("course-card-ACCT 1010")
+    expect(noLectures.props.accessibilityLabel).not.toContain("archived lecture snapshot")
+    fireEvent.changeText(screen.getByTestId("course-search-input"), "COMP 1023")
+    await screen.findByTestId("course-card-COMP 1023")
+    await waitFor(() =>
+      expect(screen.getByTestId("course-card-COMP 1023").props.accessibilityLabel).toContain(
+        "3 of 5 with seats",
+      ),
+    )
+    expect(screen.getByTestId("course-card-COMP 1023").props.accessibilityLabel).toContain(
+      "3 of 5 with seats",
+    )
+    expect(
+      StyleSheet.flatten(
+        screen.UNSAFE_getAllByProps({ testID: "lecture-dot-COMP 1023-0" })[0].props.style,
+      ),
+    ).toMatchObject({ backgroundColor: lightColors.success })
+    expect(
+      StyleSheet.flatten(
+        screen.UNSAFE_getAllByProps({ testID: "lecture-dot-COMP 1023-1" })[0].props.style,
+      ),
+    ).toMatchObject({ backgroundColor: lightColors.statusClosed })
+    fireEvent.changeText(screen.getByTestId("course-search-input"), "ACCT 2010")
+    await waitFor(() =>
+      expect(screen.getByTestId("course-card-ACCT 2010").props.accessibilityLabel).toContain(
+        "of 16 with seats",
+      ),
+    )
+    expect(screen.UNSAFE_getAllByProps({ text: "+8" })).toHaveLength(1)
   })
 
   test("offers system, light, and dark appearance choices", async () => {

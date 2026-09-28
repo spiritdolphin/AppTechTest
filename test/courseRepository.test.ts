@@ -6,6 +6,7 @@ import type {
   DetailsFile,
   PrerequisitesFile,
   SectionsFile,
+  LectureAvailabilityFile,
   SemestersFile,
 } from "../app/features/courses/domain/types"
 
@@ -152,6 +153,36 @@ const prerequisitesLoaders = {
 }
 
 describe("CourseRepository", () => {
+  test("lazily caches lecture availability and validates schema and term", async () => {
+    const fixture: LectureAvailabilityFile = {
+      schemaVersion: 1,
+      termCode: "new",
+      byCourseId: { "new-course-id": [true, false] },
+    }
+    const loader = jest.fn(() => fixture)
+    const repository = new CourseRepository({
+      semestersFile: { ...semestersFile, semesters: [semestersFile.semesters[0]] },
+      catalogueLoaders: { new: catalogueLoaders.new },
+      detailsLoaders: { new: detailsLoaders.new },
+      prerequisitesLoaders: { new: prerequisitesLoaders.new },
+      lectureAvailabilityLoaders: { new: loader },
+    })
+    expect(await repository.loadLectureAvailability("new")).toBe(fixture)
+    expect(await repository.loadLectureAvailability("new")).toBe(fixture)
+    expect(loader).toHaveBeenCalledTimes(1)
+
+    loader.mockReturnValueOnce({ ...fixture, schemaVersion: 2 })
+    const bad = new CourseRepository({
+      semestersFile: { ...semestersFile, semesters: [semestersFile.semesters[0]] },
+      catalogueLoaders: { new: catalogueLoaders.new },
+      detailsLoaders: { new: detailsLoaders.new },
+      prerequisitesLoaders: { new: prerequisitesLoaders.new },
+      lectureAvailabilityLoaders: { new: loader },
+    })
+    await expect(bad.loadLectureAvailability("new")).rejects.toThrow("schema version")
+    loader.mockReturnValueOnce({ ...fixture, termCode: "old" })
+    await expect(bad.loadLectureAvailability("new")).rejects.toThrow("term mismatch")
+  })
   test("rejects unsupported or empty semester metadata", () => {
     expect(
       () =>

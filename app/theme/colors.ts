@@ -82,4 +82,6 @@ export const colors = {
    * Error Background.
    */
   errorBackground: palette.angry100,
+  success: "#176B43",
+  statusClosed: palette.angry500,
 } as const

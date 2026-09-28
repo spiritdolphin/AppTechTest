@@ -47,4 +47,6 @@ export const colors = {
   separator: palette.neutral300,
   error: palette.angry500,
   errorBackground: palette.angry100,
+  success: "#73D9A3",
+  statusClosed: "#FF8D70",
 } as const

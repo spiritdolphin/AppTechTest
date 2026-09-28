@@ -3,6 +3,7 @@ import { compressors } from "hyparquet-compressors"
 import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 
+import { writeAvailabilityFiles } from "./buildAvailability"
 import { buildSectionData, parseSourceClasses } from "./core"
 import {
   SCHEDULE_REVISION,
@@ -74,6 +75,7 @@ async function main() {
     terms: stats,
   }
   writeFileSync(join(stagingRoot, "manifest.json"), jsonContent(manifest, true))
+  writeAvailabilityFiles([...termCodes].sort(), stagingRoot)
   rmSync(generatedRoot, { recursive: true, force: true })
   renameSync(stagingRoot, generatedRoot)
 

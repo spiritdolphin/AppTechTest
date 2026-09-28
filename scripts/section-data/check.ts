@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
 
+import { buildLectureAvailability } from "./availability"
 import {
   SCHEDULE_REVISION,
   SCHEDULE_SOURCE_SHA256,
@@ -41,10 +42,19 @@ function main() {
   assert(manifest.terms.length === termCodes.length, "Sections term statistics mismatch")
 
   const actualFiles = readdirSync(generatedRoot).sort()
-  const expectedFiles = ["manifest.json", ...manifest.files.map((file) => file.path)].sort()
+  const expectedFiles = [
+    "availability",
+    "manifest.json",
+    ...manifest.files.map((file) => file.path),
+  ].sort()
   assert(
     JSON.stringify(actualFiles) === JSON.stringify(expectedFiles),
     "Sections file list mismatch",
+  )
+  assert(
+    JSON.stringify(readdirSync(join(generatedRoot, "availability")).sort()) ===
+      JSON.stringify(termCodes.map((termCode) => `${termCode}.json`).sort()),
+    "Lecture availability file list mismatch",
   )
 
   termCodes.forEach((termCode) => {
@@ -58,6 +68,12 @@ function main() {
     const file = readJson<SectionsFile>(path)
     assert(file.schemaVersion === SECTIONS_SCHEMA_VERSION, `Sections schema mismatch: ${termCode}`)
     assert(file.termCode === termCode, `Sections term mismatch: ${termCode}`)
+    const availabilityPath = join(generatedRoot, "availability", `${termCode}.json`)
+    const availability = readJson<ReturnType<typeof buildLectureAvailability>>(availabilityPath)
+    assert(
+      JSON.stringify(availability) === JSON.stringify(buildLectureAvailability(file)),
+      `Lecture availability mismatch: ${termCode}`,
+    )
 
     let sectionCount = 0
     Object.entries(file.sectionsByCourseId).forEach(([courseId, sections]) => {
