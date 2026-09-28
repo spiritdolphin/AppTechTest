@@ -1,11 +1,11 @@
 {
-  "name": "AppTechTest2627",
+  "name": "Course Explorer",
   "slug": "AppTechTest2627",
   "scheme": "apptechtest2627",
   "version": "1.0.0",
   "orientation": "default",
   "userInterfaceStyle": "automatic",
-  "icon": "./assets/images/app-icon-all.png",
+  "icon": "./assets/images/ust-course-explorer-icon.png",
   "updates": {
     "fallbackToCacheTimeout": 0
   },
@@ -15,22 +15,22 @@
     "**/*"
   ],
   "android": {
-    "icon": "./assets/images/app-icon-android-legacy.png",
+    "icon": "./assets/images/ust-course-explorer-icon.png",
     "package": "com.usthing.apptechtest27",
     "adaptiveIcon": {
-      "foregroundImage": "./assets/images/app-icon-android-adaptive-foreground.png",
-      "backgroundImage": "./assets/images/app-icon-android-adaptive-background.png"
+      "foregroundImage": "./assets/images/ust-course-explorer-adaptive-foreground-safe.png",
+      "backgroundColor": "#062F5F"
     },
     "allowBackup": false,
     "edgeToEdgeEnabled": true
   },
   "ios": {
-    "icon": "./assets/images/app-icon-ios.png",
+    "icon": "./assets/images/ust-course-explorer-icon.png",
     "supportsTablet": true,
     "bundleIdentifier": "com.usthing.apptechtest27"
   },
   "web": {
-    "favicon": "./assets/images/app-icon-web-favicon.png",
+    "favicon": "./assets/images/ust-course-explorer-favicon.png",
     "bundler": "metro"
   },
   "plugins": [
@@ -44,10 +44,10 @@
     [
       "expo-splash-screen",
       {
-        "image": "./assets/images/app-icon-android-adaptive-foreground.png",
+        "image": "./assets/images/ust-course-explorer-adaptive-foreground.png",
         "imageWidth": 300,
         "resizeMode": "contain",
-        "backgroundColor": "#191015"
+        "backgroundColor": "#062F5F"
       }
     ],
     [
