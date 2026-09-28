@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "url": "https://huggingface.co/datasets/ust-archive/schedule/resolve/5ee0630dbac7071851fc70c1692f80bea92ade7e/classes.parquet",
+    "revision": "5ee0630dbac7071851fc70c1692f80bea92ade7e",
+    "sha256": "6cd099fb5c02c4abda8ebcf06e94e2e3002eb8bc3547df331e46573c1dde7231",
+    "bytes": 1787184,
+    "rows": 92370
+  },
+  "catalogueSourceSha256": "c0e342da1c1674c93ad4f466383d2ea99e7732ab2a830e1a7bc17dcb7772a4d1",
+  "files": [
+    {
+      "path": "2520.json",
+      "bytes": 31816,
+      "sha256": "d9e3611c3b90718acc5c595b132e613e852e81c52ea69ab5a5bedc9041443169"
+    },
+    {
+      "path": "2530.json",
+      "bytes": 1401689,
+      "sha256": "020f2004cf7e66941e687e67bcf197b72a57a617fffaa784cce6a916a9c1fa36"
+    },
+    {
+      "path": "2540.json",
+      "bytes": 162386,
+      "sha256": "d6eb84f01eaf27c3adb7c83c9dd4f150af7409a492f27b3fcc2311afae7efbfc"
+    },
+    {
+      "path": "2610.json",
+      "bytes": 1481132,
+      "sha256": "2eaa8146a0a4ce74c1bcecd92a0a4b05bba6189e2221baf460bafda3cda4fe49"
+    }
+  ],
+  "terms": [
+    {
+      "termCode": "2520",
+      "sourceRows": 105,
+      "latestRows": 104,
+      "activeRows": 104,
+      "matchedRows": 46,
+      "unmatchedRows": 58,
+      "coursesWithSections": 44
+    },
+    {
+      "termCode": "2530",
+      "sourceRows": 6401,
+      "latestRows": 3100,
+      "activeRows": 3096,
+      "matchedRows": 2632,
+      "unmatchedRows": 464,
+      "coursesWithSections": 1285
+    },
+    {
+      "termCode": "2540",
+      "sourceRows": 4122,
+      "latestRows": 404,
+      "activeRows": 381,
+      "matchedRows": 232,
+      "unmatchedRows": 149,
+      "coursesWithSections": 181
+    },
+    {
+      "termCode": "2610",
+      "sourceRows": 78618,
+      "latestRows": 3331,
+      "activeRows": 3254,
+      "matchedRows": 2789,
+      "unmatchedRows": 465,
+      "coursesWithSections": 1245
+    }
+  ]
+}

@@ -1,5 +1,11 @@
 import { CourseRepository } from "./repository"
-import type { CatalogueFile, DetailsFile, PrerequisitesFile, SemestersFile } from "../domain/types"
+import type {
+  CatalogueFile,
+  DetailsFile,
+  PrerequisitesFile,
+  SectionsFile,
+  SemestersFile,
+} from "../domain/types"
 
 const semestersFile = require("../../../../generated/courses/semesters.json") as SemestersFile
 
@@ -28,9 +34,17 @@ const prerequisitesLoaders = {
     require("../../../../generated/courses/prerequisites/2610.json") as PrerequisitesFile,
 }
 
+const sectionsLoaders = {
+  "2520": () => require("../../../../generated/sections/2520.json") as SectionsFile,
+  "2530": () => require("../../../../generated/sections/2530.json") as SectionsFile,
+  "2540": () => require("../../../../generated/sections/2540.json") as SectionsFile,
+  "2610": () => require("../../../../generated/sections/2610.json") as SectionsFile,
+}
+
 export const courseRepository = new CourseRepository({
   semestersFile,
   catalogueLoaders,
   detailsLoaders,
   prerequisitesLoaders,
+  sectionsLoaders,
 })

@@ -85,6 +85,46 @@ export interface DetailsFile {
   coursesByCode: Record<string, CourseDetail>
 }
 
+export interface SectionMeeting {
+  weekday: string
+  dateFrom: string
+  dateTo: string
+  timeFrom: string
+  timeTo: string
+  venue: string
+  venueName: string
+  instructors: string[]
+}
+
+export interface SectionReservation {
+  name: string
+  quota: number
+  enrolled: number
+}
+
+export interface CourseSection {
+  section: string
+  classNumber: number | null
+  type: string
+  role: string
+  association: number | null
+  capacity: number
+  enrolled: number
+  waitlisted: number
+  consentRequired: boolean
+  open: boolean
+  meetings: SectionMeeting[]
+  reservations: SectionReservation[]
+  remarks: string
+  snapshotAt: string
+}
+
+export interface SectionsFile {
+  schemaVersion: number
+  termCode: string
+  sectionsByCourseId: Record<string, CourseSection[]>
+}
+
 export interface PrerequisiteEntry {
   originalText: string
   referencedCourseCodes: string[]

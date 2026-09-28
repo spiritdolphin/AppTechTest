@@ -5,6 +5,7 @@ import type {
   CourseDetail,
   DetailsFile,
   PrerequisitesFile,
+  SectionsFile,
   SemestersFile,
 } from "../app/features/courses/domain/types"
 
@@ -105,6 +106,33 @@ function prerequisites(
     termCode,
     byCourseCode,
     reverseByCourseCode: {},
+  }
+}
+
+function sections(termCode: string): SectionsFile {
+  return {
+    schemaVersion: 1,
+    termCode,
+    sectionsByCourseId: {
+      "new-course-id": [
+        {
+          section: "L1",
+          classNumber: 100,
+          type: "LEC",
+          role: "E",
+          association: 1,
+          capacity: 50,
+          enrolled: 40,
+          waitlisted: 0,
+          consentRequired: false,
+          open: true,
+          meetings: [],
+          reservations: [],
+          remarks: "",
+          snapshotAt: "2026-09-01T00:00:00.000Z",
+        },
+      ],
+    },
   }
 }
 
@@ -345,6 +373,54 @@ describe("CourseRepository", () => {
     )
   })
 
+  test("loads sections lazily, validates the shard, and looks up the course id", async () => {
+    const loader = jest
+      .fn<SectionsFile, []>()
+      .mockReturnValueOnce({ ...sections("new"), schemaVersion: 2 })
+      .mockReturnValue(sections("new"))
+    const repository = new CourseRepository({
+      semestersFile: { ...semestersFile, semesters: [semestersFile.semesters[0]] },
+      catalogueLoaders: { new: catalogueLoaders.new },
+      detailsLoaders: { new: detailsLoaders.new },
+      prerequisitesLoaders: { new: prerequisitesLoaders.new },
+      sectionsLoaders: { new: loader },
+    })
+
+    await expect(repository.loadSections("new")).rejects.toThrow(
+      "Unsupported sections schema version: 2",
+    )
+    const file = await repository.loadSections("new")
+    expect(await repository.loadSections("new")).toBe(file)
+    expect(loader).toHaveBeenCalledTimes(2)
+    await expect(repository.getCourseSections("new", "new-course-id")).resolves.toHaveLength(1)
+    await expect(repository.getCourseSections("new", "missing-id")).resolves.toEqual([])
+    await expect(repository.loadSections("missing")).rejects.toThrow("Unknown sections semester")
+
+    const wrongTerm = new CourseRepository({
+      semestersFile: { ...semestersFile, semesters: [semestersFile.semesters[0]] },
+      catalogueLoaders: { new: catalogueLoaders.new },
+      detailsLoaders: { new: detailsLoaders.new },
+      prerequisitesLoaders: { new: prerequisitesLoaders.new },
+      sectionsLoaders: { new: () => sections("old") },
+    })
+    await expect(wrongTerm.loadSections("new")).rejects.toThrow(
+      "Sections term mismatch: expected new, got old",
+    )
+  })
+
+  test("rejects incomplete sections loader maps", () => {
+    expect(
+      () =>
+        new CourseRepository({
+          semestersFile,
+          catalogueLoaders,
+          detailsLoaders,
+          prerequisitesLoaders,
+          sectionsLoaders: { new: () => sections("new") },
+        }),
+    ).toThrow("Missing sections loader for semester old")
+  })
+
   test("loads the committed latest-semester catalogue", async () => {
     expect(courseRepository.getLatestSemester().termCode).toBe("2610")
     await expect(courseRepository.loadCatalogue("2610")).resolves.toMatchObject({
@@ -355,6 +431,11 @@ describe("CourseRepository", () => {
       code: "COMP 1021",
       termCode: "2610",
     })
+    const lifs2210 = await courseRepository.getCourseDetail("2610", "LIFS 2210")
+    expect(lifs2210).toBeDefined()
+    await expect(courseRepository.getCourseSections("2610", lifs2210!.id)).resolves.toEqual(
+      expect.arrayContaining([expect.objectContaining({ section: "L1", type: "LEC" })]),
+    )
     await expect(courseRepository.getPrerequisiteEntry("2610", "COMP 2011")).resolves.toEqual({
       originalText: "COMP 1023 OR COMP 1028",
       referencedCourseCodes: ["COMP 1023", "COMP 1028"],

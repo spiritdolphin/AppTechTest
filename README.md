@@ -1,5 +1,30 @@
 # Welcome to your new ignited app!
 
+## Sections data
+
+Course Details can show archived class sections between Description and Additional Information.
+The app reads the committed `generated/sections/<termCode>.json` files lazily; it does not
+download schedule data or parse Parquet at runtime. Sections are omitted when no class
+matches the selected course and semester.
+
+The build-time source is UST Archive's
+[`classes.parquet`](https://huggingface.co/datasets/ust-archive/schedule/blob/5ee0630dbac7071851fc70c1692f80bea92ade7e/classes.parquet)
+at revision `5ee0630dbac7071851fc70c1692f80bea92ade7e` (SHA-256
+`6cd099fb5c02c4abda8ebcf06e94e2e3002eb8bc3547df331e46573c1dde7231`).
+The upstream dataset labels its license `other`; review its terms before redistributing
+the raw Parquet. The raw file is not committed here. Generated section files and their
+manifest are committed so a fresh clone runs offline.
+
+To reproduce the section files, run `corepack yarn sections:build`. This downloads only
+the pinned source file and verifies its fingerprint. Alternatively, supply a previously
+downloaded copy: `corepack yarn sections:build /path/to/classes.parquet`. Run
+`corepack yarn data:check` to check both catalogue and section outputs without network
+access. The section build uses `term_code + course_id` against the supplied
+`courses.json` `term_code + id`, retains the latest snapshot per section, omits inactive
+sections, and reports unmatched active records. It does not guess a match by title or
+course code. Section enrollment, waitlist, and open status are **historical snapshots**,
+not live availability.
+
 > The latest and greatest boilerplate for Infinite Red opinions
 
 This is the boilerplate that [Infinite Red](https://infinite.red) uses as a way to test bleeding-edge changes to our React Native stack.

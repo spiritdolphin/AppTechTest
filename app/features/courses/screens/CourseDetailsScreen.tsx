@@ -10,12 +10,13 @@ import type { ThemedStyle } from "@/theme/types"
 
 import { Accordion } from "../components/Accordion"
 import { formatCredits } from "../components/CourseCard"
+import { CourseSections } from "../components/CourseSections"
 import { DependencyGraphView } from "../components/DependencyGraphView"
 import { FilledTriangle } from "../components/FilledTriangle"
 import { SelectionOption, SelectionSheet } from "../components/SelectionSheet"
 import { courseRepository } from "../data/generatedCourseRepository"
 import type { CourseRepository } from "../data/repository"
-import type { CourseDetail } from "../domain/types"
+import type { CourseDetail, CourseSection } from "../domain/types"
 import { useDependencyGraph } from "../utils/useDependencyGraph"
 
 const COMPACT_GRAPH_MAX_DEPTH = 1
@@ -93,6 +94,9 @@ export function CourseDetailsScreen({
   const [loadError, setLoadError] = useState<string>()
   const [loadAttempt, setLoadAttempt] = useState(0)
   const [semesterSheetVisible, setSemesterSheetVisible] = useState(false)
+  const [sections, setSections] = useState<readonly CourseSection[]>()
+  const [sectionsError, setSectionsError] = useState<string>()
+  const [sectionsAttempt, setSectionsAttempt] = useState(0)
 
   useEffect(() => {
     let active = true
@@ -144,6 +148,28 @@ export function CourseDetailsScreen({
       active = false
     }
   }, [courseCode, loadAttempt, repository, selectedTermCode])
+
+  useEffect(() => {
+    let active = true
+    setSections(undefined)
+    setSectionsError(undefined)
+    if (!detail || detail.termCode !== selectedTermCode || detail.code !== courseCode) return
+
+    repository
+      .getCourseSections(detail.termCode, detail.id)
+      .then((loadedSections) => {
+        if (active) setSections(loadedSections)
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setSectionsError(error instanceof Error ? error.message : "Unable to load sections.")
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [courseCode, detail, repository, sectionsAttempt, selectedTermCode])
 
   const selectedSemester = repository.getSemester(selectedTermCode)
   const semesterOptions = useMemo<SelectionOption[]>(
@@ -264,6 +290,29 @@ export function CourseDetailsScreen({
             <Text text="Description" preset="subheading" />
             {!!detail.description.trim() && <Text text={detail.description} selectable />}
           </View>
+
+          {!!sectionsError ? (
+            <View style={themed($section)} testID="course-sections-error">
+              <Text text="Sections" preset="subheading" />
+              <Text text="Could not load sections" weight="semiBold" />
+              <Text text={sectionsError} size="xs" style={themed($secondaryText)} />
+              <Button
+                text="Retry sections"
+                onPress={() => setSectionsAttempt((attempt) => attempt + 1)}
+              />
+            </View>
+          ) : sections === undefined ? (
+            <View
+              accessibilityLabel="Loading sections"
+              style={themed($section)}
+              testID="course-sections-loading"
+            >
+              <Text text="Sections" preset="subheading" />
+              <ActivityIndicator color={colors.tint} />
+            </View>
+          ) : (
+            <CourseSections sections={sections} />
+          )}
 
           <View style={themed($section)}>
             <Text text="Additional Information" preset="subheading" />

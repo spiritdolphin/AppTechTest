@@ -8,6 +8,8 @@ import type {
   CourseDetail,
   DetailsFile,
   PrerequisitesFile,
+  SectionsFile,
+  CourseSection,
   SemestersFile,
 } from "../app/features/courses/domain/types"
 import { CourseDetailsScreen } from "../app/features/courses/screens/CourseDetailsScreen"
@@ -149,15 +151,56 @@ function prerequisites(
   }
 }
 
+function section(overrides: Partial<CourseSection> = {}): CourseSection {
+  return {
+    section: "L1",
+    classNumber: 100,
+    type: "LEC",
+    role: "E",
+    association: 1,
+    capacity: 50,
+    enrolled: 40,
+    waitlisted: 2,
+    consentRequired: true,
+    open: true,
+    meetings: [
+      {
+        weekday: "Mon",
+        dateFrom: "2026-09-01",
+        dateTo: "2026-11-30",
+        timeFrom: "14:00",
+        timeTo: "15:20",
+        venue: "LTA",
+        venueName: "Lecture Theater A",
+        instructors: ["Prof A"],
+      },
+    ],
+    reservations: [{ name: "COMP", quota: 10, enrolled: 8 }],
+    remarks: "Bring notes",
+    snapshotAt: "2026-09-01T00:00:00.000Z",
+    ...overrides,
+  }
+}
+
+function sections(termCode: string, records: CourseSection[] = []): SectionsFile {
+  return {
+    schemaVersion: 1,
+    termCode,
+    sectionsByCourseId: records.length ? { [`${termCode}-course-id`]: records } : {},
+  }
+}
+
 type TermCode = "new" | "old" | "missing"
 type DetailsLoaders = Partial<Record<TermCode, () => DetailsFile | Promise<DetailsFile>>>
 type PrerequisitesLoaders = Partial<
   Record<TermCode, () => PrerequisitesFile | Promise<PrerequisitesFile>>
 >
+type SectionsLoaders = Partial<Record<TermCode, () => SectionsFile | Promise<SectionsFile>>>
 
 function createRepository(
   detailsOverrides: DetailsLoaders = {},
   prerequisitesOverrides: PrerequisitesLoaders = {},
+  sectionsOverrides: SectionsLoaders = {},
 ) {
   return new CourseRepository({
     semestersFile,
@@ -175,6 +218,11 @@ function createRepository(
       new: prerequisitesOverrides.new ?? (() => prerequisites("new")),
       old: prerequisitesOverrides.old ?? (() => prerequisites("old")),
       missing: prerequisitesOverrides.missing ?? (() => prerequisites("missing")),
+    },
+    sectionsLoaders: {
+      new: sectionsOverrides.new ?? (() => sections("new")),
+      old: sectionsOverrides.old ?? (() => sections("old")),
+      missing: sectionsOverrides.missing ?? (() => sections("missing")),
     },
   })
 }
@@ -454,6 +502,84 @@ describe("CourseDetailsScreen", () => {
     fireEvent.press(screen.getByLabelText("More Course Information"))
     expect(screen.queryByText("Campus")).toBeNull()
     expect(screen.queryByText("N/A")).toBeNull()
+  })
+
+  test("shows archived sections and reloads them for the selected semester", async () => {
+    const repository = createRepository(
+      {},
+      {},
+      {
+        new: () => sections("new", [section({ remarks: "New section note" })]),
+        old: () =>
+          sections("old", [section({ section: "T2", type: "TUT", remarks: "Old section note" })]),
+      },
+    )
+    const { screen } = renderDetails(repository)
+    expect(await screen.findByText("View 1 section")).toBeTruthy()
+    fireEvent.press(screen.getByLabelText("View 1 section"))
+    expect(screen.getByText("L1 · Lecture")).toBeTruthy()
+    expect(screen.getByText("Enrolled 40 / 50")).toBeTruthy()
+    expect(screen.getByText("Mon 14:00–15:20 · Lecture Theater A")).toBeTruthy()
+    expect(screen.getByText("Prof A")).toBeTruthy()
+    expect(screen.getByText("Snapshot 2026-09-01")).toBeTruthy()
+    expect(screen.getByText(/Archived schedule snapshot/)).toBeTruthy()
+    fireEvent.press(screen.getByLabelText("More section information"))
+    expect(screen.getByText("New section note")).toBeTruthy()
+    expect(screen.getByText("COMP: 8 / 10 reserved places")).toBeTruthy()
+
+    fireEvent.press(screen.getByTestId("details-semester-selector"))
+    fireEvent.press(screen.getByLabelText("Old Semester"))
+    expect(await screen.findByText("Computing Fundamentals")).toBeTruthy()
+    await screen.findByText("View 1 section")
+    const oldSectionsButton = screen.getByLabelText("View 1 section")
+    if (!oldSectionsButton.props.accessibilityState.expanded) fireEvent.press(oldSectionsButton)
+    expect(await screen.findByText("T2 · Tutorial")).toBeTruthy()
+    expect(screen.queryByText("L1 · Lecture")).toBeNull()
+    expect(screen.queryByText("New section note")).toBeNull()
+  })
+
+  test("omits empty sections, shows loading, and retries a failed section shard", async () => {
+    const empty = renderDetails(createRepository())
+    await empty.screen.findByText("Introduction to Computer Science")
+    await waitFor(() => expect(empty.screen.queryByTestId("course-sections-loading")).toBeNull())
+    expect(empty.screen.queryByTestId("course-sections")).toBeNull()
+    empty.screen.unmount()
+
+    let resolveSections: ((value: SectionsFile) => void) | undefined
+    const pending = new Promise<SectionsFile>((resolve) => {
+      resolveSections = resolve
+    })
+    const loading = renderDetails(createRepository({}, {}, { new: () => pending }))
+    await loading.screen.findByText("Introduction to Computer Science")
+    expect(loading.screen.getByTestId("course-sections-loading")).toBeTruthy()
+    loading.screen.unmount()
+    resolveSections?.(sections("new"))
+
+    const loader = jest
+      .fn<SectionsFile | Promise<SectionsFile>, []>()
+      .mockRejectedValueOnce(new Error("Broken sections shard"))
+      .mockReturnValue(sections("new", [section()]))
+    const retry = renderDetails(createRepository({}, {}, { new: loader }))
+    expect(await retry.screen.findByText("Could not load sections")).toBeTruthy()
+    expect(retry.screen.getByText("Broken sections shard")).toBeTruthy()
+    fireEvent.press(retry.screen.getByText("Retry sections"))
+    expect(await retry.screen.findByText("View 1 section")).toBeTruthy()
+    expect(loader).toHaveBeenCalledTimes(2)
+  })
+
+  test("reveals large section lists in batches", async () => {
+    const records = Array.from({ length: 12 }, (_, index) =>
+      section({ section: `L${index + 1}`, remarks: "", reservations: [], association: null }),
+    )
+    const { screen } = renderDetails(
+      createRepository({}, {}, { new: () => sections("new", records) }),
+    )
+    await screen.findByText("View 12 sections")
+    fireEvent.press(screen.getByLabelText("View 12 sections"))
+    expect(screen.getByText("L10 · Lecture")).toBeTruthy()
+    expect(screen.queryByText("L11 · Lecture")).toBeNull()
+    fireEvent.press(screen.getByTestId("sections-show-more"))
+    expect(screen.getByText("L11 · Lecture")).toBeTruthy()
   })
 
   test("renders loading, missing, and error states", async () => {
