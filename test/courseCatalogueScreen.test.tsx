@@ -104,6 +104,11 @@ describe("CourseCatalogueScreen", () => {
     )
     expect(
       StyleSheet.flatten(
+        screen.UNSAFE_getAllByProps({ testID: "lecture-availability-COMP 1023" })[0].props.style,
+      ),
+    ).toMatchObject({ marginLeft: "auto" })
+    expect(
+      StyleSheet.flatten(
         screen.UNSAFE_getAllByProps({ testID: "lecture-dot-COMP 1023-0" })[0].props.style,
       ),
     ).toMatchObject({ backgroundColor: lightColors.success })

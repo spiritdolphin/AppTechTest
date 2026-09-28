@@ -135,7 +135,12 @@ const $creditsBadge: ThemedStyle<ViewStyle> = ({ colors, spacing }) => ({
   paddingHorizontal: spacing.xs,
   paddingVertical: spacing.xxs,
 })
-const $availabilityRow: ViewStyle = { alignItems: "center", flexDirection: "row", gap: 5 }
+const $availabilityRow: ViewStyle = {
+  alignItems: "center",
+  flexDirection: "row",
+  gap: 5,
+  marginLeft: "auto",
+}
 const $availableDot: ThemedStyle<ViewStyle> = ({ colors }) => ({
   backgroundColor: colors.success,
   borderRadius: 4,
